@@ -1,5 +1,8 @@
 # KPL 赛事数据智能平台
 
+> **开源与协作**：原创代码与文档采用 [MIT License](LICENSE)。欢迎通过 [Issue](https://github.com/hccccc01333/KPLdata/issues) 和 [Pull Request](https://github.com/hccccc01333/KPLdata/pulls) 参与。
+> 阅读 [贡献指南](CONTRIBUTING.md) 与 [复现说明](REPRODUCIBILITY.md)；竞赛/赛事数据及第三方资源不在此授权范围内。
+
 > **定位**：面向 KPL 赛事的实时数据分析系统（可演进为「KPL 数据中心」）  
 > **能力**：赛程监控 · 实时胜率预测 · 关键事件识别 · 战队/赛局复盘 · 数据健康中控  
 > **技术**：Python · pandas · scikit-learn · Plotly · Streamlit  
