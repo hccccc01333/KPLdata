@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-15 17:42:09",
+  "updated_at": "2026-10-16 00:53:03",
   "source": "D:\\AI数据分析\\项目作品集\\02-KPL实时胜率预测系统\\data\\realtime\\raw_snapshots",
   "rules": {
     "min_snaps": 5,
@@ -9,11 +9,2849 @@
     "require_win_camp": true
   },
   "stats": {
-    "total": 444,
+    "total": 732,
     "clean": 185,
-    "quarantine": 259
+    "quarantine": 547
   },
   "battles": [
+    {
+      "battle_id": "1054884368_100_1791280810",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_101_1791287829",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_102_1791290223",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_103_1791292185",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_104_1791294242",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_106_1791352881",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_107_1791355376",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1054884368_108_1791357745",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_109_1791363552",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_10_1791982621",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_110_1791365481",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_111_1791367391",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_112_1791369858",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_113_1791375373",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_114_1791377475",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_115_1791379926",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_116_1791381892",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_117_1791383435",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1054884368_119_1791536354",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_11_1791984693",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_120_1791538287",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_121_1791540339",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_122_1791542111",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 23,
+      "minute_max": 23
+    },
+    {
+      "battle_id": "1054884368_123_1791544432",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_124_1791550454",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_125_1791552200",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_126_1791553997",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_129_1791622698",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_130_1791624944",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_131_1791627405",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_132_1791629291",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_133_1791631356",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1054884368_134_1791637164",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_135_1791638989",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_136_1791640785",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_137_1791642818",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1054884368_138_1791644886",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_13_1792054719",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_140_1791709212",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_141_1791711063",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_142_1791713552",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_143_1791715355",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_144_1791716969",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_145_1791722547",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_146_1791724513",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_147_1791726592",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_148_1791728915",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_149_1791730538",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
+      "battle_id": "1054884368_14_1792056705",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_152_1791795556",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_153_1791797509",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_154_1791799505",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_155_1791806206",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_156_1791807936",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_157_1791809952",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_158_1791811772",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_159_1791813409",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_15_1792058641",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_16_1792060594",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_17_1792062405",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1054884368_18_1792068122",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_19_1792070661",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 25,
+      "minute_max": 25
+    },
+    {
+      "battle_id": "1054884368_20_1792073501",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 25,
+      "minute_max": 25
+    },
+    {
+      "battle_id": "1054884368_21_1792076295",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_22_1792078095",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_23_1789208214",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_24_1789210294",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_25_1789212747",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1054884368_26_1789216243",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_27_1789218448",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_28_1789220888",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 25,
+      "minute_max": 25
+    },
+    {
+      "battle_id": "1054884368_29_1789223641",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_36_1790920656",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_37_1790922838",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_38_1790925117",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_39_1790931796",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_40_1790933670",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_41_1790935560",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_42_1790942307",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_43_1790944220",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1054884368_44_1790946450",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_45_1790948365",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_54_1791007059",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_55_1791009223",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1054884368_56_1791011726",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
+      "battle_id": "1054884368_57_1791013545",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_58_1791019858",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_59_1791022077",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_5_1791968343",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1054884368_60_1791024076",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_61_1791026251",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_62_1791028095",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_63_1791033789",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_64_1791036072",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_65_1791038220",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 24,
+      "minute_max": 24
+    },
+    {
+      "battle_id": "1054884368_66_1791040873",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_67_1791042705",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_69_1791093466",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1054884368_6_1791970593",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_70_1791095941",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_71_1791098092",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_72_1791104208",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_73_1791106027",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_74_1791108081",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_75_1791110044",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_76_1791111735",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_77_1791117402",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_78_1791119553",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1054884368_79_1791121886",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1054884368_7_1791972403",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1054884368_81_1791179900",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1054884368_82_1791182825",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_83_1791184784",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_84_1791186667",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_85_1791188340",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1054884368_86_1791193865",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_87_1791196258",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1054884368_88_1791198627",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_89_1791204240",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_8_1791979042",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
+      "battle_id": "1054884368_90_1791206344",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1054884368_91_1791208910",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_92_1791210681",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
+      "battle_id": "1054884368_95_1791266434",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1054884368_96_1791268566",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1054884368_97_1791270705",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1054884368_98_1791277038",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1054884368_99_1791279051",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1054884368_9_1791980761",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
     {
       "battle_id": "1222656528_11_1782367274",
       "bucket": "clean",
@@ -52,6 +2890,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 11,
       "minute_max": 11
+    },
+    {
+      "battle_id": "1222656528_11_1786870929",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_11_1787913429",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
     },
     {
       "battle_id": "1222656528_12_1782369551",
@@ -93,6 +2975,50 @@
       "minute_max": 21
     },
     {
+      "battle_id": "1222656528_12_1786873131",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_12_1787915451",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 24,
+      "minute_max": 24
+    },
+    {
       "battle_id": "1222656528_13_1782371597",
       "bucket": "clean",
       "reasons": [],
@@ -111,6 +3037,556 @@
     },
     {
       "battle_id": "1222656528_13_1783862241",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1222656528_13_1786875252",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_13_1787918157",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_14_1786877008",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1222656528_14_1787920095",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_15_1787921770",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1222656528_17_1787999752",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_18_1788001808",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1222656528_19_1788003771",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1222656528_20_1788005937",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_21_1788007923",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_22_1788010067",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_23_1788011806",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_25_1788086131",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1222656528_26_1788088516",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 25,
+      "minute_max": 25
+    },
+    {
+      "battle_id": "1222656528_27_1788091199",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_28_1788093008",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_29_1788094939",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1222656528_30_1788096788",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
+      "battle_id": "1222656528_32_1788172598",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1222656528_33_1788175029",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_34_1788176791",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1222656528_35_1788178585",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "1222656528_36_1788180017",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_37_1788181880",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1222656528_38_1788184119",
       "bucket": "quarantine",
       "reasons": [
         "too_few_snaps:1<5",
@@ -193,6 +3669,182 @@
       "minute_max": 21
     },
     {
+      "battle_id": "1222656528_41_1788258926",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_42_1788261010",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_43_1788262928",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1222656528_44_1788264875",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_45_1788266399",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1222656528_47_1788345366",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1222656528_48_1788347452",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1222656528_49_1788349544",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
       "battle_id": "1222656528_4_1781688905",
       "bucket": "quarantine",
       "reasons": [
@@ -269,6 +3921,226 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 20
+    },
+    {
+      "battle_id": "1222656528_4_1787227549",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_50_1788351386",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_51_1788352915",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_52_1788354771",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_54_1788431693",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_55_1788433565",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_56_1788435729",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1222656528_57_1788438049",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_58_1788439641",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "1222656528_59_1788441844",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
     },
     {
       "battle_id": "1222656528_5_1781691647",
@@ -349,6 +4221,226 @@
       "minute_max": 21
     },
     {
+      "battle_id": "1222656528_5_1787229219",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "1222656528_5_1787826916",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_60_1788443973",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_62_1788518112",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
+      "battle_id": "1222656528_63_1788519899",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_64_1788521839",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "1222656528_65_1788524256",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1222656528_66_1788526099",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_68_1788604546",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
+      "battle_id": "1222656528_69_1788607500",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
       "battle_id": "1222656528_6_1783680334",
       "bucket": "quarantine",
       "reasons": [
@@ -386,6 +4478,270 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 10
+    },
+    {
+      "battle_id": "1222656528_6_1786709497",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1222656528_6_1787231255",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_6_1787828700",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "1222656528_70_1788609374",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_71_1788611248",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_72_1788612802",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1222656528_74_1788690886",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_75_1788692875",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1222656528_76_1788695176",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "1222656528_77_1788696947",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_78_1788698804",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_79_1788700709",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
     },
     {
       "battle_id": "1222656528_7_1781848850",
@@ -430,6 +4786,94 @@
       "minute_max": 15
     },
     {
+      "battle_id": "1222656528_7_1786711464",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "1222656528_7_1787233016",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
+      "battle_id": "1222656528_7_1787830794",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "1222656528_80_1788702381",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
       "battle_id": "1222656528_8_1781850843",
       "bucket": "clean",
       "reasons": [],
@@ -447,6 +4891,72 @@
       "minute_max": 13
     },
     {
+      "battle_id": "1222656528_8_1786713220",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1222656528_8_1787234853",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1222656528_8_1787832835",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
       "battle_id": "1222656528_9_1781852728",
       "bucket": "clean",
       "reasons": [],
@@ -462,6 +4972,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 17
+    },
+    {
+      "battle_id": "1222656528_9_1787834257",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
     },
     {
       "battle_id": "1272988176_10_1782034338",
@@ -501,6 +5033,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 18
+    },
+    {
+      "battle_id": "1272988176_10_1783838220",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
     },
     {
       "battle_id": "1272988176_11_1782036318",
@@ -732,6 +5286,28 @@
       "minute_max": 15
     },
     {
+      "battle_id": "1272988176_2_1787140962",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
       "battle_id": "1272988176_3_1781859852",
       "bucket": "quarantine",
       "reasons": [
@@ -818,6 +5394,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 15,
       "minute_max": 15
+    },
+    {
+      "battle_id": "1272988176_3_1787143209",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
     },
     {
       "battle_id": "1272988176_4_1781861867",
@@ -925,6 +5523,50 @@
       "minute_max": 16
     },
     {
+      "battle_id": "1272988176_4_1786784425",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 19,
+      "minute_max": 19
+    },
+    {
+      "battle_id": "1272988176_4_1787145142",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
+    },
+    {
       "battle_id": "1272988176_5_1781864166",
       "bucket": "quarantine",
       "reasons": [
@@ -1030,6 +5672,28 @@
       "minute_max": 12
     },
     {
+      "battle_id": "1272988176_5_1786786942",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
       "battle_id": "1272988176_6_1781865916",
       "bucket": "quarantine",
       "reasons": [
@@ -1113,6 +5777,28 @@
       "minute_max": 12
     },
     {
+      "battle_id": "1272988176_6_1786788884",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 25,
+      "minute_max": 25
+    },
+    {
       "battle_id": "1272988176_7_1782999817",
       "bucket": "clean",
       "reasons": [],
@@ -1128,6 +5814,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 3,
       "minute_max": 15
+    },
+    {
+      "battle_id": "1272988176_7_1786791379",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "1272988176_8_1786792883",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
     },
     {
       "battle_id": "1272988176_9_1782032574",
@@ -1379,6 +6109,28 @@
       "minute_max": 15
     },
     {
+      "battle_id": "434127376_2_1787302827",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
       "battle_id": "434127376_3_1782464559",
       "bucket": "clean",
       "reasons": [],
@@ -1433,6 +6185,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 12
+    },
+    {
+      "battle_id": "434127376_3_1787304632",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
     },
     {
       "battle_id": "434127376_4_1782466310",
@@ -1511,6 +6285,28 @@
       "minute_max": 20
     },
     {
+      "battle_id": "434127376_4_1787306223",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
       "battle_id": "434127376_5_1782468188",
       "bucket": "clean",
       "reasons": [],
@@ -1545,6 +6341,28 @@
       "minute_max": 15
     },
     {
+      "battle_id": "434127376_5_1784122275",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
       "battle_id": "434127376_5_1784811860",
       "bucket": "clean",
       "reasons": [],
@@ -1560,6 +6378,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 16
+    },
+    {
+      "battle_id": "434127376_5_1787308220",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
     },
     {
       "battle_id": "434127376_6_1782469833",
@@ -1886,6 +6726,28 @@
       "minute_max": 11
     },
     {
+      "battle_id": "48251408_10_1787221320",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
       "battle_id": "48251408_11_1782898351",
       "bucket": "clean",
       "reasons": [],
@@ -1984,6 +6846,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 29
+    },
+    {
+      "battle_id": "48251408_11_1786622582",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "48251408_11_1787223137",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
     },
     {
       "battle_id": "48251408_12_1781762650",
@@ -2086,6 +6992,28 @@
       "minute_max": 14
     },
     {
+      "battle_id": "48251408_12_1786624814",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
       "battle_id": "48251408_13_1781764732",
       "bucket": "quarantine",
       "reasons": [
@@ -2162,6 +7090,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 13
+    },
+    {
+      "battle_id": "48251408_13_1786626432",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
     },
     {
       "battle_id": "48251408_14_1781766560",
@@ -2281,6 +7231,28 @@
       "minute_max": 20
     },
     {
+      "battle_id": "48251408_14_1787389375",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
       "battle_id": "48251408_15_1781768796",
       "bucket": "quarantine",
       "reasons": [
@@ -2379,6 +7351,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 16
+    },
+    {
+      "battle_id": "48251408_15_1787391257",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
     },
     {
       "battle_id": "48251408_16_1781770362",
@@ -2481,6 +7475,28 @@
       "minute_max": 17
     },
     {
+      "battle_id": "48251408_16_1787392949",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
       "battle_id": "48251408_17_1783929980",
       "bucket": "quarantine",
       "reasons": [
@@ -2540,6 +7556,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 21
+    },
+    {
+      "battle_id": "48251408_17_1787394849",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
     },
     {
       "battle_id": "48251408_18_1782972301",
@@ -2896,6 +7934,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 13,
       "minute_max": 13
+    },
+    {
+      "battle_id": "48251408_21_1784788488",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
     },
     {
       "battle_id": "48251408_22_1781782407",
@@ -3286,6 +8346,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 28,
       "minute_max": 28
+    },
+    {
+      "battle_id": "48251408_28_1784872875",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
     },
     {
       "battle_id": "48251408_29_1782021630",
@@ -4034,6 +9116,28 @@
       "minute_max": 25
     },
     {
+      "battle_id": "48251408_3_1787130121",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
       "battle_id": "48251408_40_1782294016",
       "bucket": "clean",
       "reasons": [],
@@ -4489,6 +9593,50 @@
       "minute_max": 17
     },
     {
+      "battle_id": "48251408_4_1786527795",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "48251408_4_1787131923",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 23,
+      "minute_max": 23
+    },
+    {
       "battle_id": "48251408_50_1782380248",
       "bucket": "clean",
       "reasons": [],
@@ -4747,6 +9895,28 @@
       "minute_max": 10
     },
     {
+      "battle_id": "48251408_57_1785153806",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
       "battle_id": "48251408_58_1782541737",
       "bucket": "clean",
       "reasons": [],
@@ -4918,6 +10088,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 24,
       "minute_max": 24
+    },
+    {
+      "battle_id": "48251408_5_1787134234",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
     },
     {
       "battle_id": "48251408_60_1782545198",
@@ -5343,6 +10535,28 @@
       "minute_max": 12
     },
     {
+      "battle_id": "48251408_6_1787135959",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
       "battle_id": "48251408_70_1782641051",
       "bucket": "quarantine",
       "reasons": [
@@ -5718,6 +10932,28 @@
       "minute_max": 11
     },
     {
+      "battle_id": "48251408_8_1787216564",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 25,
+      "minute_max": 25
+    },
+    {
       "battle_id": "48251408_9_1781680658",
       "bucket": "quarantine",
       "reasons": [
@@ -5840,6 +11076,28 @@
       "minute_max": 13
     },
     {
+      "battle_id": "48251408_9_1787219125",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
       "battle_id": "501236240_10_1783254441",
       "bucket": "clean",
       "reasons": [],
@@ -5855,6 +11113,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 11
+    },
+    {
+      "battle_id": "501236240_10_1787478128",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
     },
     {
       "battle_id": "501236240_11_1782043389",
@@ -5894,6 +11174,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 15
+    },
+    {
+      "battle_id": "501236240_11_1787480108",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
     },
     {
       "battle_id": "501236240_12_1782045515",
@@ -5952,6 +11254,28 @@
       "minute_max": 19
     },
     {
+      "battle_id": "501236240_12_1787482074",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
       "battle_id": "501236240_13_1782047590",
       "bucket": "quarantine",
       "reasons": [
@@ -5972,6 +11296,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 11,
       "minute_max": 11
+    },
+    {
+      "battle_id": "501236240_13_1784464693",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
+      "battle_id": "501236240_13_1787484127",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
     },
     {
       "battle_id": "501236240_14_1782049245",
@@ -6019,6 +11387,28 @@
     },
     {
       "battle_id": "501236240_15_1784468926",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "501236240_16_1784470733",
       "bucket": "quarantine",
       "reasons": [
         "too_few_snaps:1<5",
@@ -6188,6 +11578,28 @@
       "minute_max": 13
     },
     {
+      "battle_id": "501236240_4_1784292087",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
       "battle_id": "501236240_4_1784982226",
       "bucket": "clean",
       "reasons": [],
@@ -6225,6 +11637,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 11,
       "minute_max": 11
+    },
+    {
+      "battle_id": "501236240_4_1787313744",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
     },
     {
       "battle_id": "501236240_5_1781870619",
@@ -6327,6 +11761,28 @@
       "minute_max": 13
     },
     {
+      "battle_id": "501236240_5_1787315645",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
       "battle_id": "501236240_6_1781872932",
       "bucket": "quarantine",
       "reasons": [
@@ -6401,6 +11857,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 12
+    },
+    {
+      "battle_id": "501236240_6_1787317180",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
     },
     {
       "battle_id": "501236240_7_1781874729",
@@ -6488,6 +11966,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 11,
       "minute_max": 20
+    },
+    {
+      "battle_id": "501236240_9_1787475800",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 22,
+      "minute_max": 22
     },
     {
       "battle_id": "736117264_10_1777089898",
@@ -7392,6 +12892,50 @@
       "minute_max": 13
     },
     {
+      "battle_id": "836780560_10_1786775289",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
+      "battle_id": "836780560_10_1787469858",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
       "battle_id": "836780560_11_1781935241",
       "bucket": "clean",
       "reasons": [],
@@ -7431,6 +12975,28 @@
       "minute_max": 26
     },
     {
+      "battle_id": "836780560_11_1786777135",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
       "battle_id": "836780560_12_1781937458",
       "bucket": "clean",
       "reasons": [],
@@ -7446,6 +13012,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 14
+    },
+    {
+      "battle_id": "836780560_12_1786779173",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
     },
     {
       "battle_id": "836780560_13_1781939308",
@@ -7485,6 +13073,28 @@
       "minute_max": 12
     },
     {
+      "battle_id": "836780560_14_1786860026",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
       "battle_id": "836780560_15_1781942669",
       "bucket": "clean",
       "reasons": [],
@@ -7500,6 +13110,72 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 12
+    },
+    {
+      "battle_id": "836780560_15_1786861875",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "836780560_16_1786863881",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "836780560_17_1786866039",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
     },
     {
       "battle_id": "836780560_18_1782388743",
@@ -7612,6 +13288,50 @@
       "minute_max": 19
     },
     {
+      "battle_id": "836780560_2_1787378401",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "836780560_3_1783944015",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 24,
+      "minute_max": 24
+    },
+    {
       "battle_id": "836780560_3_1784278830",
       "bucket": "quarantine",
       "reasons": [
@@ -7632,6 +13352,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 24,
       "minute_max": 24
+    },
+    {
+      "battle_id": "836780560_3_1786698150",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
+      "battle_id": "836780560_3_1787380330",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
     },
     {
       "battle_id": "836780560_4_1781785258",
@@ -7717,6 +13481,50 @@
       "minute_max": 21
     },
     {
+      "battle_id": "836780560_4_1786700245",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "836780560_4_1787382188",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 18,
+      "minute_max": 18
+    },
+    {
       "battle_id": "836780560_5_1781787308",
       "bucket": "quarantine",
       "reasons": [
@@ -7800,6 +13608,50 @@
       "minute_max": 11
     },
     {
+      "battle_id": "836780560_5_1786702253",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
+    },
+    {
+      "battle_id": "836780560_5_1787384343",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
       "battle_id": "836780560_6_1781789384",
       "bucket": "quarantine",
       "reasons": [
@@ -7839,6 +13691,28 @@
       "minute_max": 13
     },
     {
+      "battle_id": "836780560_6_1786704186",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
       "battle_id": "836780560_7_1781791292",
       "bucket": "quarantine",
       "reasons": [
@@ -7876,6 +13750,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 16
+    },
+    {
+      "battle_id": "836780560_7_1786705646",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "836780560_7_1787464856",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
     },
     {
       "battle_id": "836780560_8_1781793174",
@@ -7922,6 +13840,28 @@
       "minute_max": 15
     },
     {
+      "battle_id": "836780560_8_1787466349",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
+    },
+    {
       "battle_id": "836780560_9_1784453768",
       "bucket": "quarantine",
       "reasons": [
@@ -7942,6 +13882,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 16,
       "minute_max": 16
+    },
+    {
+      "battle_id": "836780560_9_1786773657",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 11,
+      "minute_max": 11
+    },
+    {
+      "battle_id": "836780560_9_1787468111",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
     },
     {
       "battle_id": "853557776_5_1785477694",
@@ -8017,6 +14001,50 @@
       "minute_max": 16
     },
     {
+      "battle_id": "954221072_10_1786885372",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "954221072_10_1787487100",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
       "battle_id": "954221072_11_1783854879",
       "bucket": "quarantine",
       "reasons": [
@@ -8037,6 +14065,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 22,
       "minute_max": 22
+    },
+    {
+      "battle_id": "954221072_11_1787488886",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
     },
     {
       "battle_id": "954221072_12_1785067227",
@@ -8061,6 +14111,28 @@
       "minute_max": 15
     },
     {
+      "battle_id": "954221072_12_1787491127",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
       "battle_id": "954221072_13_1785069157",
       "bucket": "quarantine",
       "reasons": [
@@ -8077,6 +14149,28 @@
       "n_snaps": 1,
       "n_minutes": 1,
       "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "954221072_13_1787493155",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
       "has_finished_status": true,
       "max_backward_jump_sec": 0.0,
       "minute_min": 12,
@@ -8210,6 +14304,50 @@
       "minute_max": 21
     },
     {
+      "battle_id": "954221072_3_1786795900",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 20,
+      "minute_max": 20
+    },
+    {
+      "battle_id": "954221072_3_1787400055",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 14,
+      "minute_max": 14
+    },
+    {
       "battle_id": "954221072_4_1783667902",
       "bucket": "quarantine",
       "reasons": [
@@ -8269,6 +14407,50 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 18
+    },
+    {
+      "battle_id": "954221072_4_1786798120",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
+      "battle_id": "954221072_4_1787401874",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 15,
+      "minute_max": 15
     },
     {
       "battle_id": "954221072_5_1784376052",
@@ -8332,6 +14514,50 @@
       "minute_max": 23
     },
     {
+      "battle_id": "954221072_5_1786799946",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 17,
+      "minute_max": 17
+    },
+    {
+      "battle_id": "954221072_5_1787403855",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 10,
+      "minute_max": 10
+    },
+    {
       "battle_id": "954221072_6_1784378562",
       "bucket": "quarantine",
       "reasons": [
@@ -8391,6 +14617,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 1,
       "minute_max": 20
+    },
+    {
+      "battle_id": "954221072_6_1787405570",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 2,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
     },
     {
       "battle_id": "954221072_7_1783846810",
@@ -8459,6 +14707,50 @@
       "minute_max": 22
     },
     {
+      "battle_id": "954221072_7_1787407226",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 21,
+      "minute_max": 21
+    },
+    {
+      "battle_id": "954221072_8_1783849005",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 16,
+      "minute_max": 16
+    },
+    {
       "battle_id": "954221072_8_1784382593",
       "bucket": "quarantine",
       "reasons": [
@@ -8503,6 +14795,28 @@
       "minute_max": 16
     },
     {
+      "battle_id": "954221072_8_1786881584",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 12,
+      "minute_max": 12
+    },
+    {
       "battle_id": "954221072_9_1783851043",
       "bucket": "quarantine",
       "reasons": [
@@ -8545,6 +14859,28 @@
       "max_backward_jump_sec": 0.0,
       "minute_min": 22,
       "minute_max": 22
+    },
+    {
+      "battle_id": "954221072_9_1786883363",
+      "bucket": "quarantine",
+      "reasons": [
+        "too_few_snaps:1<5",
+        "too_few_minutes:1<8",
+        "backfill_only",
+        "shallow_or_empty"
+      ],
+      "reasons_str": "too_few_snaps:1<5;too_few_minutes:1<8;backfill_only;shallow_or_empty",
+      "n_json_total": 1,
+      "n_json_live": 0,
+      "n_json_backfill": 1,
+      "n_json_bad": 0,
+      "n_snaps": 1,
+      "n_minutes": 1,
+      "win_camp": 1,
+      "has_finished_status": true,
+      "max_backward_jump_sec": 0.0,
+      "minute_min": 13,
+      "minute_max": 13
     },
     {
       "battle_id": "970998288_10_1781958896",
