@@ -5,12 +5,13 @@ KPL 官方赛程自动监控与实时采集脚本
 - 自动从官方赛程接口识别进行中或最近一场比赛；
 - 自动发现当前 battle_id；
 - 多副本探测获取最新局内数据；
-- 保存 raw snapshots、实时预测 CSV、monitor_status.json；
+- 爬虫与模型并行：采集线程高频写 raw/frames，推理线程异步写 predictions；
+- 保存 raw snapshots、frames CSV、实时预测 CSV、monitor_status.json；
 - 一场 BO 全部结束后，等待下一场开赛时间并自动切换预测；
 - 当日全部比赛结束后统一重训一次模型，并热加载新模型（非每场/每局都训练）。
 
 运行示例：
-    python scripts/official_match_monitor.py --interval 15
+    python scripts/official_match_monitor.py --interval 0.1
     python scripts/official_match_monitor.py --no-auto-train
 """
 
@@ -19,12 +20,15 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import queue
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
@@ -32,7 +36,7 @@ if sys.platform == "win32":
 
 from kpl_official_core import (
     LEAGUE_ID,
-    MONOTONIC_TOLERANCE_SEC,
+    REWIND_ACCEPT_TOLERANCE_SEC,
     PREDICTION_CSV_FIELDS,
     PREDICTION_DIR,
     RAW_DIR,
@@ -54,8 +58,37 @@ from train_realtime_model_v9 import train_v9_model
 
 STATUS_FILE = REALTIME_DIR / "monitor_status.json"
 TRAIN_STATUS_FILE = REALTIME_DIR / "train_status.json"
-_SAVE_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="kpl-save")
+FRAME_DIR = REALTIME_DIR / "frames"
+FRAME_CSV_FIELDS = [
+    "collected_at",
+    "match_id",
+    "battle_id",
+    "minute",
+    "snapshot_time_sec",
+    "lag_sec",
+    "camp1_team",
+    "camp2_team",
+    "gold_diff",
+    "kill_diff",
+    "tower_diff",
+    "status",
+    "win_camp",
+]
+_SAVE_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="kpl-save")
 _TRAIN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="kpl-train")
+_SENTINEL = object()
+
+
+@dataclass
+class CollectedFrame:
+    match_id: str
+    battle_id: str
+    match_name: str
+    collected_at: str
+    raw: dict[str, Any]
+    snap: dict[str, Any]
+    lag_sec: float | None
+    clock_jump: bool
 
 
 @dataclass
@@ -69,19 +102,39 @@ class PipelineContext:
     battle_anchors: dict[str, tuple[datetime, int]] = field(default_factory=dict)
     last_velocity_by_battle: dict[str, float] = field(default_factory=dict)
     last_snapshot_sec: dict[str, int] = field(default_factory=dict)
+    last_frame_key: dict[str, tuple] = field(default_factory=dict)
     last_lag_sec: dict[str, float] = field(default_factory=dict)
+    # Match API sometimes drops active battle_id mid-game; keep polling last known id.
+    sticky_battle_by_match: dict[str, str] = field(default_factory=dict)
+    frame_queue: queue.Queue = field(default_factory=lambda: queue.Queue(maxsize=800))
+    # Deduped timeline: battle_id -> snapshot_time_sec -> latest unique frame.
+    deduped_timeline: dict[str, dict[int, CollectedFrame]] = field(default_factory=dict)
+    predicted_secs: dict[str, set[int]] = field(default_factory=dict)
+    predict_history: dict[str, list[dict]] = field(default_factory=dict)
+    collect_history: dict[str, list[dict]] = field(default_factory=dict)
+    stop_event: threading.Event = field(default_factory=threading.Event)
+    collect_interval_sec: float = 0.1
+    last_battle_resolve_at: float = 0.0
+    _status_lock: threading.Lock = field(default_factory=threading.Lock)
+    _timeline_lock: threading.Lock = field(default_factory=threading.Lock)
 
 
-def write_status(payload: dict):
+def write_status(payload: dict, ctx: PipelineContext | None = None):
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
     payload = {"updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), **payload}
-    STATUS_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    text = json.dumps(payload, ensure_ascii=False, indent=2)
+    if ctx is not None:
+        with ctx._status_lock:
+            STATUS_FILE.write_text(text, encoding="utf-8")
+    else:
+        STATUS_FILE.write_text(text, encoding="utf-8")
 
 
 def save_raw_snapshot(battle_id: str, payload: dict) -> Path:
     out_dir = RAW_DIR / battle_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    # Microseconds: 0.1s crawl would collide on second-only names.
+    path = out_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json"
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
@@ -90,27 +143,59 @@ def save_raw_snapshot_async(battle_id: str, payload: dict) -> None:
     _SAVE_EXECUTOR.submit(save_raw_snapshot, battle_id, payload)
 
 
-def append_prediction(battle_id: str, row: dict):
-    PREDICTION_DIR.mkdir(parents=True, exist_ok=True)
-    path = PREDICTION_DIR / f"{battle_id}.csv"
+def _append_csv(path: Path, fields: list[str], row: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     exists = path.exists()
-    full_row = {col: row.get(col, "") for col in PREDICTION_CSV_FIELDS}
+    use_fields = list(fields)
+    if exists:
+        with path.open("r", encoding="utf-8-sig", newline="") as f:
+            header = next(csv.reader(f), None)
+        if header:
+            use_fields = header
+    full_row = {col: row.get(col, "") for col in use_fields}
     with path.open("a", newline="", encoding="utf-8-sig") as f:
-        writer = csv.DictWriter(f, fieldnames=PREDICTION_CSV_FIELDS, extrasaction="ignore")
+        writer = csv.DictWriter(f, fieldnames=use_fields, extrasaction="ignore")
         if not exists:
             writer.writeheader()
         writer.writerow(full_row)
 
 
-def next_poll_interval(ctx: PipelineContext, battle_id: str | None, args) -> int:
-    if not args.adaptive or not battle_id:
-        return args.interval
+def append_prediction(battle_id: str, row: dict):
+    _append_csv(PREDICTION_DIR / f"{battle_id}.csv", list(PREDICTION_CSV_FIELDS), row)
+
+
+def append_frame(battle_id: str, row: dict):
+    """Crawl-only timeline (no model)."""
+    _append_csv(FRAME_DIR / f"{battle_id}.csv", FRAME_CSV_FIELDS, row)
+
+
+def frame_dedupe_key(snap: dict[str, Any]) -> tuple:
+    """Identity of a crawl row: same game clock + board state => duplicate."""
+    sec = int(snap.get("time_sec", 0) or snap.get("snapshot_time_sec", 0) or 0)
+    return (
+        sec,
+        int(snap.get("camp1_gold", 0) or 0),
+        int(snap.get("camp2_gold", 0) or 0),
+        int(snap.get("camp1_kill", 0) or 0),
+        int(snap.get("camp2_kill", 0) or 0),
+        int(snap.get("camp1_tower", 0) or 0),
+        int(snap.get("camp2_tower", 0) or 0),
+        int(snap.get("status", 0) or 0),
+        int(snap.get("win_camp", 0) or 0),
+    )
+
+
+def next_poll_interval(ctx: PipelineContext, battle_id: str | None, args) -> float:
+    if not getattr(args, "adaptive", False) or not battle_id:
+        return float(args.interval)
     velocity = ctx.last_velocity_by_battle.get(battle_id, 0.0)
-    return adaptive_poll_interval(
-        velocity,
-        interval_calm=args.interval,
-        interval_hot=args.interval_hot,
-        hot_velocity_threshold=args.hot_velocity,
+    return float(
+        adaptive_poll_interval(
+            velocity,
+            interval_calm=float(args.interval),
+            interval_hot=float(args.interval_hot),
+            hot_velocity_threshold=args.hot_velocity,
+        )
     )
 
 
@@ -325,31 +410,221 @@ def wait_until_start(
         time.sleep(min(poll_sec, wait_sec, 60))
 
 
-def run_once(
+def clear_battle_runtime(ctx: PipelineContext, match_id: str, battle_id: str) -> None:
+    """Drop crawl-side state; predict history is cleared after finishing PRED."""
+    ctx.collect_history.pop(battle_id, None)
+    ctx.last_snapshot_sec.pop(battle_id, None)
+    ctx.last_frame_key.pop(battle_id, None)
+    if ctx.sticky_battle_by_match.get(match_id) == battle_id:
+        ctx.sticky_battle_by_match.pop(match_id, None)
+
+
+def enqueue_frame(ctx: PipelineContext, frame: CollectedFrame) -> bool:
+    """Register onto deduped timeline (by game second), then wake the predict worker."""
+    snap_sec = int(frame.snap.get("time_sec", 0) or frame.snap.get("snapshot_time_sec", 0) or 0)
+    with ctx._timeline_lock:
+        by_sec = ctx.deduped_timeline.setdefault(frame.battle_id, {})
+        by_sec[snap_sec] = frame
+    try:
+        ctx.frame_queue.put_nowait((frame.battle_id, snap_sec))
+        return True
+    except queue.Full:
+        try:
+            ctx.frame_queue.get_nowait()
+        except queue.Empty:
+            pass
+        try:
+            ctx.frame_queue.put_nowait((frame.battle_id, snap_sec))
+            return True
+        except queue.Full:
+            print(f"[WARN] frame queue full, drop {frame.battle_id}@{snap_sec}s")
+            return False
+
+
+def predict_worker(ctx: PipelineContext) -> None:
+    """Model module: pull unique game-seconds from the deduped timeline and score."""
+    print("[PRED] 推理线程已启动（按去重局时提取 → 算胜率）")
+    while not ctx.stop_event.is_set():
+        try:
+            item = ctx.frame_queue.get(timeout=0.2)
+        except queue.Empty:
+            continue
+        if item is _SENTINEL:
+            break
+        try:
+            if isinstance(item, CollectedFrame):
+                process_prediction_frame(ctx, item)
+            elif isinstance(item, tuple) and len(item) == 2:
+                battle_id, snap_sec = item
+                process_prediction_by_sec(ctx, str(battle_id), int(snap_sec))
+        except Exception as exc:
+            print(f"[PRED-ERR] {exc}")
+            import traceback
+
+            traceback.print_exc()
+        finally:
+            ctx.frame_queue.task_done()
+    print("[PRED] 推理线程已退出")
+
+
+def process_prediction_by_sec(ctx: PipelineContext, battle_id: str, snap_sec: int) -> None:
+    """Pull one unique game-second from the deduped timeline and score win probability."""
+    predicted = ctx.predicted_secs.setdefault(battle_id, set())
+    if snap_sec > 0 and snap_sec in predicted:
+        return
+
+    with ctx._timeline_lock:
+        frame = (ctx.deduped_timeline.get(battle_id) or {}).get(snap_sec)
+    if frame is None:
+        return
+
+    if snap_sec > 0:
+        predicted.add(snap_sec)
+    _emit_prediction(ctx, frame)
+
+
+def process_prediction_frame(ctx: PipelineContext, frame: CollectedFrame) -> None:
+    """Direct entry: ensure frame is on the deduped timeline, then score that second."""
+    snap_sec = int(frame.snap.get("time_sec", 0) or frame.snap.get("snapshot_time_sec", 0) or 0)
+    with ctx._timeline_lock:
+        ctx.deduped_timeline.setdefault(frame.battle_id, {})[snap_sec] = frame
+    process_prediction_by_sec(ctx, frame.battle_id, snap_sec)
+
+
+def _emit_prediction(ctx: PipelineContext, frame: CollectedFrame) -> None:
+    battle_id = frame.battle_id
+    snap = frame.snap
+    history = ctx.predict_history.setdefault(battle_id, [])
+    artifact = ctx.artifact
+    snap_sec = int(snap.get("time_sec", 0) or snap.get("snapshot_time_sec", 0) or 0)
+
+    prob, feats, explain = predict_probability(artifact, snap, history)
+    history.append(snap)
+    if len(history) > 40:
+        history[:] = history[-40:]
+
+    ctx.last_velocity_by_battle[battle_id] = float(feats.get("gold_diff_velocity", 0.0))
+
+    gold_guard_applied = float(feats.get("_gold_guard_applied", 0) or 0) > 0.5
+    row = {
+        "collected_at": frame.collected_at,
+        "match_id": frame.match_id,
+        "battle_id": battle_id,
+        "minute": round(float(snap.get("minute", 0)), 2),
+        "snapshot_time_sec": snap_sec,
+        "lag_sec": frame.lag_sec if frame.lag_sec is not None else "",
+        "camp1_team": snap.get("camp1_team"),
+        "camp2_team": snap.get("camp2_team"),
+        "camp1_win_prob": round(prob, 5),
+        "camp2_win_prob": round(1 - prob, 5),
+        "gold_diff": snap.get("camp1_gold", 0) - snap.get("camp2_gold", 0),
+        "kill_diff": snap.get("camp1_kill", 0) - snap.get("camp2_kill", 0),
+        "tower_diff": snap.get("camp1_tower", 0) - snap.get("camp2_tower", 0),
+        "objective_value_score": round(float(feats.get("objective_value_score", 0)), 4),
+        "tempo_swing_score": round(float(feats.get("tempo_swing_score", 0)), 4),
+        "top_factor": explain[0]["factor"] if explain else "",
+        "gold_guard_applied": int(gold_guard_applied),
+        "status": snap.get("status"),
+        "win_camp": snap.get("win_camp"),
+    }
+    append_prediction(battle_id, row)
+
+    battle_state = "finished" if int(snap.get("status", 0) or 0) == 2 else "running"
+    write_status(
+        {
+            "state": battle_state,
+            "match_id": frame.match_id,
+            "battle_id": battle_id,
+            "match": frame.match_name,
+            "camp1_team": snap.get("camp1_team"),
+            "camp2_team": snap.get("camp2_team"),
+            "minute": row["minute"],
+            "snapshot_time_sec": row["snapshot_time_sec"],
+            "lag_sec": row["lag_sec"],
+            "clock_jump": frame.clock_jump,
+            "low_confidence": bool(feats.get("_low_confidence", 0)),
+            "confidence": feats.get("_confidence", "high"),
+            "camp1_win_prob": row["camp1_win_prob"],
+            "camp2_win_prob": row["camp2_win_prob"],
+            "gold_diff": row["gold_diff"],
+            "top_factor": row["top_factor"],
+            "gold_guard_applied": gold_guard_applied,
+            "poll_interval_sec": ctx.collect_interval_sec,
+            "queue_size": ctx.frame_queue.qsize(),
+            "pipeline": "crawl||predict@deduped_sec",
+            "prediction_path": str(PREDICTION_DIR / f"{battle_id}.csv"),
+            "frame_path": str(FRAME_DIR / f"{battle_id}.csv"),
+            "model_name": artifact.get("model_name", "Unknown"),
+        },
+        ctx,
+    )
+    lag_note = (
+        f" lag={frame.lag_sec:+.0f}s"
+        if isinstance(frame.lag_sec, (int, float))
+        else (" lag=clock_jump" if frame.clock_jump else "")
+    )
+    print(
+        f"[PRED] {battle_id} t={snap_sec}s ({row['minute']:.1f}min) "
+        f"{row['camp1_team']} {row['camp1_win_prob']:.1%} vs {row['camp2_team']} {row['camp2_win_prob']:.1%}"
+        f"{lag_note} · q={ctx.frame_queue.qsize()}"
+    )
+    if int(snap.get("status", 0) or 0) == 2:
+        ctx.predict_history.pop(battle_id, None)
+        ctx.battle_anchors.pop(battle_id, None)
+        ctx.last_velocity_by_battle.pop(battle_id, None)
+        ctx.last_lag_sec.pop(battle_id, None)
+        ctx.predicted_secs.pop(battle_id, None)
+        with ctx._timeline_lock:
+            ctx.deduped_timeline.pop(battle_id, None)
+
+
+def collect_once(
     args,
-    artifact,
-    history_by_battle: dict[str, list[dict]],
     match_id: str,
-    match: ScheduleMatch | None = None,
-    ctx: PipelineContext | None = None,
-) -> tuple[str, int]:
+    match: ScheduleMatch | None,
+    ctx: PipelineContext,
+) -> tuple[str, float]:
+    """Crawl module only: fetch + save + enqueue. Never runs the model."""
     schedule = ScheduleCenter(args.league_id)
     match = match or schedule.get_match_by_id(match_id)
+    wait_sec = max(1.0, float(args.interval))
+    crawl_sec = float(args.interval)
+
     if not match_id:
-        write_status({"state": "waiting_schedule", "message": "未发现可监控赛程"})
+        write_status({"state": "waiting_schedule", "message": "未发现可监控赛程"}, ctx)
         print("[WAIT] 未发现可监控赛程")
-        return "waiting_schedule", args.interval
+        return "waiting_schedule", wait_sec
 
     if match and match.status == 2:
         print(f"[DONE] match={match_id} 已结束 · {match.display_name}")
-        return "match_finished", args.interval
+        return "match_finished", wait_sec
 
-    battle_id = args.battle_id or schedule.fetch_live_battle_id(match_id)
+    battle_id = args.battle_id
+    used_sticky = False
+    now_mono = time.monotonic()
+    # Match API resolve at most ~1Hz; battle crawl stays at --interval.
+    if not battle_id:
+        sticky = ctx.sticky_battle_by_match.get(match_id)
+        if sticky and (now_mono - ctx.last_battle_resolve_at) < 1.0:
+            battle_id = sticky
+            used_sticky = True
+        else:
+            battle_id = schedule.fetch_live_battle_id(match_id)
+            ctx.last_battle_resolve_at = now_mono
+            if battle_id:
+                ctx.sticky_battle_by_match[match_id] = battle_id
+            elif sticky:
+                battle_id = sticky
+                used_sticky = True
+    else:
+        ctx.sticky_battle_by_match[match_id] = battle_id
+        ctx.last_battle_resolve_at = now_mono
+
     if not battle_id:
         match_info = schedule.get_match_by_id(match_id) or match
         if match_info and match_info.status == 2:
             print(f"[DONE] match={match_id} 已结束 · {match_info.display_name}")
-            return "match_finished", args.interval
+            return "match_finished", wait_sec
         if match_info and match_info.status == 1:
             write_status(
                 {
@@ -357,22 +632,30 @@ def run_once(
                     "match_id": match_id,
                     "match": match.display_name if match else match_id,
                     "message": "局间休息，等待下一局 battle_id",
-                }
+                    "pipeline": "crawl||predict",
+                },
+                ctx,
             )
             print(f"[WAIT] match={match_id} 局间休息，等待下一局")
-            return "waiting_battle", min(5, args.interval)
+            return "waiting_battle", wait_sec
         write_status(
             {
                 "state": "waiting_battle",
                 "match_id": match_id,
                 "match": match.display_name if match else match_id,
                 "message": "比赛尚未生成 battle_id",
-            }
+                "pipeline": "crawl||predict",
+            },
+            ctx,
         )
         print(f"[WAIT] match={match_id} 尚未生成 battle_id")
-        return "waiting_battle", args.interval
+        return "waiting_battle", wait_sec
 
-    history = history_by_battle.setdefault(battle_id, [])
+    if used_sticky:
+        # Keep sticky quiet unless rare — print at most via status.
+        pass
+
+    history = ctx.collect_history.setdefault(battle_id, [])
     min_game_sec = 0
     if history:
         min_game_sec = int(
@@ -387,81 +670,66 @@ def run_once(
         min_game_sec=min_game_sec,
     )
     if not raw:
-        write_status({"state": "api_error", "match_id": match_id, "battle_id": battle_id, "message": "battle API 不可用"})
+        write_status(
+            {
+                "state": "api_error",
+                "match_id": match_id,
+                "battle_id": battle_id,
+                "message": "battle API 不可用",
+            },
+            ctx,
+        )
         print(f"[ERR] battle API unavailable: {battle_id}")
-        return "error", args.interval
+        return "error", wait_sec
 
     snap = parse_snapshot(raw.get("data", {}), battle_id)
-    history = history_by_battle.setdefault(battle_id, [])
 
     if not is_monotonic_snapshot(snap, history):
         prev_t = int(history[-1].get("time_sec", 0) or history[-1].get("snapshot_time_sec", 0) or 0)
         cur_t = int(snap.get("time_sec", 0) or snap.get("snapshot_time_sec", 0) or 0)
         print(
             f"[SKIP] {battle_id} 快照倒退 {cur_t}s < {prev_t}s "
-            f"(tol={MONOTONIC_TOLERANCE_SEC}s)，丢弃"
+            f"(tol={REWIND_ACCEPT_TOLERANCE_SEC}s)，丢弃"
         )
-        write_status(
-            {
-                "state": "stale_snapshot",
-                "match_id": match_id,
-                "battle_id": battle_id,
-                "message": f"API 副本倒退 ({cur_t}s < {prev_t}s)，已跳过",
-            }
-        )
-        return "stale_snapshot", next_poll_interval(ctx, battle_id, args) if ctx else args.interval
+        return "stale_snapshot", crawl_sec
 
     if (
         int(snap.get("status", 0) or 0) == 2
         and history
         and int(history[-1].get("status", 0) or 0) == 2
     ):
+        if ctx.sticky_battle_by_match.get(match_id) == battle_id:
+            ctx.sticky_battle_by_match.pop(match_id, None)
+        ctx.collect_history.pop(battle_id, None)
+        ctx.last_snapshot_sec.pop(battle_id, None)
+        ctx.last_frame_key.pop(battle_id, None)
         match_info = schedule.get_match_by_id(match_id)
         if match_info and match_info.status == 2:
-            return "match_finished", args.interval
-        return "battle_finished", args.interval
+            return "match_finished", wait_sec
+        return "battle_finished", wait_sec
 
-    if ctx is not None:
-        ensure_battle_anchor(ctx, battle_id, snap)
-        anchor = ctx.battle_anchors.get(battle_id)
-        raw_lag = compute_lag_sec(snap, anchor[0], anchor[1]) if anchor else None
-        prev_lag = ctx.last_lag_sec.get(battle_id)
-        lag_sec, clock_jump = sanitize_lag_sec(raw_lag, prev_lag)
-        if lag_sec is not None:
-            ctx.last_lag_sec[battle_id] = lag_sec
-    else:
-        lag_sec, clock_jump = None, False
+    ensure_battle_anchor(ctx, battle_id, snap)
+    anchor = ctx.battle_anchors.get(battle_id)
+    raw_lag = compute_lag_sec(snap, anchor[0], anchor[1]) if anchor else None
+    prev_lag = ctx.last_lag_sec.get(battle_id)
+    lag_sec, clock_jump = sanitize_lag_sec(raw_lag, prev_lag)
+    if lag_sec is not None:
+        ctx.last_lag_sec[battle_id] = lag_sec
 
     snap_sec = int(snap.get("time_sec", 0) or snap.get("snapshot_time_sec", 0) or 0)
-    if ctx is not None and ctx.last_snapshot_sec.get(battle_id) == snap_sec and snap_sec > 0:
-        poll_sec = next_poll_interval(ctx, battle_id, args)
-        write_status(
-            {
-                "state": "running",
-                "match_id": match_id,
-                "battle_id": battle_id,
-                "match": match.display_name if match else match_id,
-                "message": f"同秒快照已跳过 ({snap_sec}s)",
-                "snapshot_time_sec": snap_sec,
-                "lag_sec": lag_sec if lag_sec is not None else "",
-                "clock_jump": clock_jump,
-                "poll_interval_sec": poll_sec,
-                "model_name": artifact.get("model_name", "Unknown"),
-            }
-        )
-        return "duplicate_sec", poll_sec
+    dedupe_key = frame_dedupe_key(snap)
+    # Middle gate: only persist / enqueue unique board states.
+    if ctx.last_frame_key.get(battle_id) == dedupe_key:
+        return "duplicate", crawl_sec
 
-    collected_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    prob, feats, explain = predict_probability(artifact, snap, history)
+    collected_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     history.append(snap)
-    if len(history) > 40:
-        history[:] = history[-40:]
+    if len(history) > 80:
+        history[:] = history[-80:]
+    ctx.last_snapshot_sec[battle_id] = snap_sec
+    ctx.last_frame_key[battle_id] = dedupe_key
 
-    if ctx is not None:
-        ctx.last_velocity_by_battle[battle_id] = float(feats.get("gold_diff_velocity", 0.0))
-        ctx.last_snapshot_sec[battle_id] = snap_sec
-
-    row = {
+    frame_row = {
         "collected_at": collected_at,
         "match_id": match_id,
         "battle_id": battle_id,
@@ -470,66 +738,71 @@ def run_once(
         "lag_sec": lag_sec if lag_sec is not None else "",
         "camp1_team": snap.get("camp1_team"),
         "camp2_team": snap.get("camp2_team"),
-        "camp1_win_prob": round(prob, 5),
-        "camp2_win_prob": round(1 - prob, 5),
         "gold_diff": snap.get("camp1_gold", 0) - snap.get("camp2_gold", 0),
         "kill_diff": snap.get("camp1_kill", 0) - snap.get("camp2_kill", 0),
         "tower_diff": snap.get("camp1_tower", 0) - snap.get("camp2_tower", 0),
-        "objective_value_score": round(float(feats.get("objective_value_score", 0)), 4),
-        "tempo_swing_score": round(float(feats.get("tempo_swing_score", 0)), 4),
-        "top_factor": explain[0]["factor"] if explain else "",
         "status": snap.get("status"),
         "win_camp": snap.get("win_camp"),
     }
-    append_prediction(battle_id, row)
+    append_frame(battle_id, frame_row)
+    save_raw_snapshot_async(battle_id, raw)
 
-    battle_state = "finished" if int(snap.get("status", 0) or 0) == 2 else "running"
+    match_name = match.display_name if match else match_id
+    enqueue_frame(
+        ctx,
+        CollectedFrame(
+            match_id=match_id,
+            battle_id=battle_id,
+            match_name=match_name,
+            collected_at=collected_at,
+            raw=raw,
+            snap=snap,
+            lag_sec=lag_sec,
+            clock_jump=clock_jump,
+        ),
+    )
+
+    lag_note = (
+        f" lag={lag_sec:+.0f}s"
+        if isinstance(lag_sec, (int, float))
+        else (" lag=clock_jump" if clock_jump else "")
+    )
+    print(
+        f"[CRAWL] {battle_id} {frame_row['minute']:.1f}min "
+        f"gold={frame_row['gold_diff']:+d}{lag_note} · next={crawl_sec}s · q={ctx.frame_queue.qsize()}"
+    )
+
     match_info = schedule.get_match_by_id(match_id)
     if match_info and match_info.status == 2:
-        battle_state = "finished"
+        return "match_finished", crawl_sec
+    if int(snap.get("status", 0) or 0) == 2:
+        # Finishing frame already queued for predict; only drop crawl sticky/history.
+        clear_battle_runtime(ctx, match_id, battle_id)
+        return "battle_finished", wait_sec
+    return "running", crawl_sec
 
-    poll_sec = next_poll_interval(ctx, battle_id, args) if ctx else args.interval
-    write_status(
-        {
-            "state": battle_state,
-            "match_id": match_id,
-            "battle_id": battle_id,
-            "match": match.display_name if match else match_id,
-            "camp1_team": snap.get("camp1_team"),
-            "camp2_team": snap.get("camp2_team"),
-            "minute": row["minute"],
-            "snapshot_time_sec": row["snapshot_time_sec"],
-            "lag_sec": row["lag_sec"],
-            "clock_jump": clock_jump,
-            "low_confidence": bool(feats.get("_low_confidence", 0)),
-            "confidence": feats.get("_confidence", "high"),
-            "camp1_win_prob": row["camp1_win_prob"],
-            "camp2_win_prob": row["camp2_win_prob"],
-            "gold_diff": row["gold_diff"],
-            "top_factor": row["top_factor"],
-            "poll_interval_sec": poll_sec,
-            "prediction_path": str(PREDICTION_DIR / f"{battle_id}.csv"),
-            "model_name": artifact.get("model_name", "Unknown"),
-        }
-    )
-    save_raw_snapshot_async(battle_id, raw)
-    lag_note = f" lag={lag_sec:+.0f}s" if isinstance(lag_sec, (int, float)) else (" lag=clock_jump" if clock_jump else "")
-    print(
-        f"[{battle_state.upper()}] {battle_id} {row['minute']:.1f}min "
-        f"{row['camp1_team']} {row['camp1_win_prob']:.1%} vs {row['camp2_team']} {row['camp2_win_prob']:.1%}"
-        f"{lag_note} · next={poll_sec}s"
-    )
-    if match_info and match_info.status == 2:
-        return "match_finished", poll_sec
-    if battle_state == "finished":
-        history_by_battle.pop(battle_id, None)
-        if ctx is not None:
-            ctx.battle_anchors.pop(battle_id, None)
-            ctx.last_velocity_by_battle.pop(battle_id, None)
-            ctx.last_snapshot_sec.pop(battle_id, None)
-            ctx.last_lag_sec.pop(battle_id, None)
-        return "battle_finished", poll_sec
-    return "running", poll_sec
+
+def run_once(
+    args,
+    artifact,
+    history_by_battle: dict[str, list[dict]],
+    match_id: str,
+    match: ScheduleMatch | None = None,
+    ctx: PipelineContext | None = None,
+) -> tuple[str, float]:
+    """Backward-compatible wrapper: crawl once and wait briefly for predict queue."""
+    if ctx is None:
+        raise RuntimeError("run_once requires PipelineContext in parallel pipeline")
+    # Keep legacy history alias pointing at collect history for callers.
+    history_by_battle.clear()
+    history_by_battle.update(ctx.collect_history)
+    outcome, poll_sec = collect_once(args, match_id, match, ctx)
+    # Give predictor a short chance to drain for --once smoke runs.
+    if outcome == "running":
+        deadline = time.time() + 2.0
+        while ctx.frame_queue.unfinished_tasks and time.time() < deadline:
+            time.sleep(0.05)
+    return outcome, poll_sec
 
 
 def advance_to_next_match(
@@ -576,14 +849,24 @@ def main():
     parser.add_argument("--battle-id", default=None, help="指定 battle_id；为空则从 match_id 自动发现")
     parser.add_argument("--league-id", type=int, default=LEAGUE_ID)
     parser.add_argument("--date", default=None, help="限定当天赛程，格式 YYYY-MM-DD")
-    parser.add_argument("--interval", type=int, default=10, help="平稳期轮询间隔秒（默认 10）")
-    parser.add_argument("--interval-hot", type=int, default=4, help="团战期轮询间隔秒（默认 4）")
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=0.1,
+        help="采集间隔秒（默认 0.1；仅影响爬虫，模型异步并行）",
+    )
+    parser.add_argument(
+        "--interval-hot",
+        type=float,
+        default=0.1,
+        help="团战期采集间隔秒（仅 --adaptive 时生效，默认 0.1）",
+    )
     parser.add_argument("--hot-velocity", type=float, default=150.0, help="判定团战期的 gold_diff_velocity 阈值")
-    parser.add_argument("--adaptive", action="store_true", default=True, help="自适应轮询（默认开启）")
-    parser.add_argument("--no-adaptive", action="store_true", help="禁用自适应轮询")
-    parser.add_argument("--prestart-poll", type=int, default=30, help="等待开赛时的检查间隔秒")
-    parser.add_argument("--probes", type=int, default=2, help="每次采集并行探测 API 副本次数")
-    parser.add_argument("--probe-gap", type=float, default=0.2, help="串行探测时的间隔秒")
+    parser.add_argument("--adaptive", action="store_true", default=False, help="按经济波动自适应间隔（默认关闭）")
+    parser.add_argument("--no-adaptive", action="store_true", help="禁用自适应轮询（默认已禁用）")
+    parser.add_argument("--prestart-poll", type=int, default=20, help="等待开赛时的检查间隔秒")
+    parser.add_argument("--probes", type=int, default=1, help="每次采集探测 API 副本次数（高频默认 1）")
+    parser.add_argument("--probe-gap", type=float, default=0.05, help="串行探测时的间隔秒")
     parser.add_argument("--sequential-probes", action="store_true", help="使用串行探测（默认并行）")
     parser.add_argument("--once", action="store_true", help="只运行一次")
     parser.add_argument("--stop-when-finished", action="store_true", help="当前局结束后停止")
@@ -613,7 +896,11 @@ def main():
         auto_train=auto_train,
         train_after_matches=args.train_after_matches,
         last_data_sig=realtime_data_signature(),
+        collect_interval_sec=float(args.interval),
     )
+
+    pred_thread = threading.Thread(target=predict_worker, args=(ctx,), name="kpl-predict", daemon=True)
+    pred_thread.start()
 
     write_status(
         {
@@ -622,7 +909,15 @@ def main():
             "auto_next": auto_next,
             "auto_train": auto_train,
             "train_after_matches": args.train_after_matches,
-        }
+            "pipeline": "crawl||predict",
+            "poll_interval_sec": float(args.interval),
+            "probes": args.probes,
+        },
+        ctx,
+    )
+    print(
+        f"[INIT] 并行流水线：爬虫 interval={args.interval}s probes={args.probes} "
+        f"| 模型异步消费 queue"
     )
     history_by_battle: dict[str, list[dict]] = {}
     schedule = ScheduleCenter(args.league_id)
@@ -637,80 +932,100 @@ def main():
     except Exception as exc:
         print(f"[WARN] 赛程缓存刷新失败: {exc}")
 
-    while True:
-        if current_match_id:
-            current_match = schedule.get_match_by_id(current_match_id)
-            if not current_match:
-                current_match = schedule.resolve_monitor_match(None, date=args.date)
-                if current_match:
-                    current_match_id = current_match.match_id
-        else:
-            current_match = schedule.resolve_monitor_match(None, date=args.date)
-            if current_match:
+    try:
+        while True:
+            try:
+                if current_match_id:
+                    current_match = schedule.get_match_by_id(current_match_id)
+                    if not current_match:
+                        current_match = schedule.resolve_monitor_match(None, date=args.date)
+                        if current_match:
+                            current_match_id = current_match.match_id
+                else:
+                    current_match = schedule.resolve_monitor_match(None, date=args.date)
+                    if current_match:
+                        current_match_id = current_match.match_id
+
+                if not current_match:
+                    write_status({"state": "waiting_schedule", "message": "暂无可监控比赛"}, ctx)
+                    print("[WAIT] 暂无可监控比赛")
+                    maybe_train_after_batch(ctx, schedule, args.date, reason="waiting_schedule")
+                    if args.once:
+                        break
+                    time.sleep(args.prestart_poll)
+                    continue
+
                 current_match_id = current_match.match_id
+                if current_match.start_time and datetime.now() < current_match.start_time:
+                    wait_until_start(current_match, args.prestart_poll, ctx)
 
-        if not current_match:
-            write_status({"state": "waiting_schedule", "message": "暂无可监控比赛"})
-            print("[WAIT] 暂无可监控比赛")
-            maybe_train_after_batch(ctx, schedule, args.date, reason="waiting_schedule")
-            if args.once:
+                cycle_args = argparse.Namespace(
+                    league_id=args.league_id,
+                    match_id=current_match_id,
+                    battle_id=None,
+                    date=args.date,
+                    probes=args.probes,
+                    probe_gap=args.probe_gap,
+                    sequential_probes=args.sequential_probes,
+                    interval=args.interval,
+                    interval_hot=args.interval_hot,
+                    hot_velocity=args.hot_velocity,
+                    adaptive=args.adaptive,
+                )
+                t0 = time.monotonic()
+                outcome, poll_sec = collect_once(cycle_args, current_match_id, current_match, ctx)
+                history_by_battle = ctx.collect_history
+
+                if outcome == "match_finished":
+                    maybe_train_after_batch(ctx, schedule, args.date, reason="match_finished")
+                    if time.monotonic() - last_schedule_refresh > 1800:
+                        try:
+                            refresh_schedule_archive(args.league_id)
+                            last_schedule_refresh = time.monotonic()
+                        except Exception:
+                            pass
+
+                if args.once or (outcome in {"battle_finished", "match_finished"} and args.stop_when_finished):
+                    break
+
+                if outcome == "match_finished" and auto_next:
+                    next_match_id, next_match = advance_to_next_match(
+                        schedule, current_match_id, args.date, args.prestart_poll, ctx
+                    )
+                    if next_match_id:
+                        current_match_id = next_match_id
+                        current_match = next_match
+                        args.battle_id = None
+                        continue
+                    if args.once:
+                        break
+                    time.sleep(args.prestart_poll)
+                    current_match_id = None
+                    continue
+
+                # Pace crawl by wall clock: subtract time spent in collect_once.
+                elapsed = time.monotonic() - t0
+                sleep_sec = max(0.0, float(poll_sec) - elapsed)
+                if sleep_sec > 0:
+                    time.sleep(sleep_sec)
+            except KeyboardInterrupt:
+                write_status({"state": "stopped", "message": "用户中断"}, ctx)
+                print("\n[STOP] monitor interrupted")
                 break
-            time.sleep(args.prestart_poll)
-            continue
+            except Exception as exc:
+                write_status({"state": "error", "message": f"cycle error: {exc}"}, ctx)
+                print(f"[ERR] cycle crashed: {exc}")
+                import traceback
 
-        current_match_id = current_match.match_id
-        if current_match.start_time and datetime.now() < current_match.start_time:
-            wait_until_start(current_match, args.prestart_poll, ctx)
-
-        cycle_args = argparse.Namespace(
-            league_id=args.league_id,
-            match_id=current_match_id,
-            battle_id=None,
-            date=args.date,
-            probes=args.probes,
-            probe_gap=args.probe_gap,
-            sequential_probes=args.sequential_probes,
-            interval=args.interval,
-            interval_hot=args.interval_hot,
-            hot_velocity=args.hot_velocity,
-            adaptive=args.adaptive,
-        )
-        outcome, poll_sec = run_once(
-            cycle_args, ctx.artifact, history_by_battle, current_match_id, current_match, ctx
-        )
-
-        if outcome == "match_finished":
-            maybe_train_after_batch(ctx, schedule, args.date, reason="match_finished")
-            if time.monotonic() - last_schedule_refresh > 1800:
-                try:
-                    refresh_schedule_archive(args.league_id)
-                    last_schedule_refresh = time.monotonic()
-                except Exception:
-                    pass
-
-        if args.once or (outcome in {"battle_finished", "match_finished"} and args.stop_when_finished):
-            break
-
-        if outcome == "match_finished" and auto_next:
-            next_match_id, next_match = advance_to_next_match(
-                schedule, current_match_id, args.date, args.prestart_poll, ctx
-            )
-            if next_match_id:
-                current_match_id = next_match_id
-                current_match = next_match
-                args.battle_id = None
-                continue
-            if args.once:
-                break
-            time.sleep(args.prestart_poll)
-            current_match_id = None
-            continue
-
-        if outcome in {"waiting_schedule", "waiting_battle", "error", "battle_finished", "stale_snapshot"}:
-            time.sleep(poll_sec)
-            continue
-
-        time.sleep(poll_sec)
+                traceback.print_exc()
+                time.sleep(max(5.0, float(args.interval)))
+    finally:
+        ctx.stop_event.set()
+        try:
+            ctx.frame_queue.put_nowait(_SENTINEL)
+        except queue.Full:
+            pass
+        pred_thread.join(timeout=3.0)
 
 
 if __name__ == "__main__":
