@@ -1260,7 +1260,7 @@ def hero_meta_rows() -> pd.DataFrame:
     for name, v in (meta.get("heroes") or {}).items():
         rows.append({
             "英雄": str(name),
-            "出场": int(v["pick"]["n"]),
+            "出场": int(v["pick"]["k"]),
             "pick率": float(v["pick"]["rate"]),
             "ban率": float(v["ban"]["rate"]),
             "胜率": float(v["win"]["rate"]),
