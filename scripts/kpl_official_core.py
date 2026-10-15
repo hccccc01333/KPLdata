@@ -2904,6 +2904,337 @@ def build_postmatch_brief(match_id: str) -> dict[str, Any]:
     return {"state": "ok", "markdown": md, "meta": meta}
 
 
+# ---------------- P13 · 高光赛季之最（规则版） ----------------
+
+HONORS_RULES_VERSION = "v1"
+HONOR_TIE_EPS_RATE = 0.005
+HONOR_MIN_TEAM_MATCHES = 8
+HONOR_MIN_TEAM_BATTLES = 10
+HONOR_MIN_TEAM_STREAK_MATCHES = 5
+HONOR_MIN_PLAYER_GAMES = 10
+HONOR_MIN_HERO_PICKS = 15
+HONOR_MIN_HERO_BAN = 5
+
+_LANE_RULE_CODE = {"对抗路": "TOP", "打野": "JGL", "中路": "MID", "发育路": "ADC", "游走": "SUP"}
+
+
+def _players_source_table() -> pd.DataFrame:
+    """读取 ``data/processed/players.csv``（选手面板数据源）；缺失或损坏返回空表。"""
+    path = PROJECT_ROOT / "data" / "processed" / "players.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path)
+    except (OSError, pd.errors.ParserError):
+        return pd.DataFrame()
+
+
+def _tie_top(entries: list[dict[str, Any]], eps: float) -> list[dict[str, Any]]:
+    """并列第一名：按 ``key`` 降序，返回与第一名差值 ≤ eps 的全部条目（稳定顺序）。"""
+    if not entries:
+        return []
+    ordered = sorted(entries, key=lambda e: -float(e["key"]))
+    top_key = float(ordered[0]["key"])
+    picked = [e for e in ordered if abs(float(e["key"]) - top_key) <= eps]
+    for e in picked:
+        e.pop("key", None)
+    return picked
+
+
+def _honor_card(
+    rule_id: str,
+    title: str,
+    category: str,
+    winners: list[dict[str, Any]],
+    rule_summary: str,
+    n_label: str,
+) -> dict[str, Any]:
+    return {
+        "rule_id": rule_id,
+        "title": title,
+        "category": category,
+        "source_tag": "自算荣誉",
+        "rule_summary": rule_summary,
+        "n_label": n_label,
+        "tie": len(winners) > 1,
+        "entries": winners,
+    }
+
+
+def build_season_honors() -> dict[str, Any]:
+    """P13 · 高光赛季之最（P0 规则引擎）：预设之最 + 最小样本 + 并列全展示。
+
+    来源标签固定「自算荣誉」（非官方评选）；胜率类采用稳健排序（Wilson 95% 下界）。
+    同一数据快照下可复算（无随机性）；规则版本见 ``HONORS_RULES_VERSION``。
+    """
+    battles = load_analysis_table("battles")
+    teams_tbl = load_analysis_table("teams")
+    if battles.empty or teams_tbl.empty:
+        return {"state": "empty", "message": "analysis 表为空，请先运行 scripts/build_history_dataset.py"}
+
+    cards: list[dict[str, Any]] = []
+    eps = HONOR_TIE_EPS_RATE
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        year = pd.to_datetime(battles["date"], errors="coerce").dt.year.dropna().max()
+        season_label = f"{int(year)} 赛季" if pd.notna(year) else "赛季"
+    except Exception:
+        season_label = "赛季"
+
+    # ---------- 战队：大场结果（单局胜数多者胜，平局跳过） ----------
+    b = battles.copy()
+    b["winner"] = b["winner"].fillna("").astype(str)
+    m_rows: list[dict[str, Any]] = []
+    for mid, g in b.groupby("match_id"):
+        t1, t2 = str(g["team1"].iloc[0]), str(g["team2"].iloc[0])
+        w1 = int((g["winner"] == t1).sum())
+        w2 = int((g["winner"] == t2).sum())
+        if w1 == w2:
+            continue
+        winner = t1 if w1 > w2 else t2
+        for team in (t1, t2):
+            m_rows.append({"match_id": mid, "date": str(g["date"].iloc[0]), "team": team, "win": int(team == winner)})
+
+    if m_rows:
+        mt = pd.DataFrame(m_rows)
+        agg = mt.groupby("team").agg(matches=("win", "count"), wins=("win", "sum")).reset_index()
+        agg = agg[agg["matches"] >= HONOR_MIN_TEAM_MATCHES].copy()
+        if not agg.empty:
+            agg["wr"] = agg["wins"] / agg["matches"]
+            ci = [wilson_ci(int(w), int(n)) for w, n in zip(agg["wins"], agg["matches"])]
+            entries = [
+                {
+                    "name": str(r["team"]),
+                    "key": ci[i][0],
+                    "value_text": f"{r['wr']:.1%}",
+                    "detail": f"Wilson 下界 {ci[i][0]:.1%} · {int(r['wins'])}W{int(r['matches'] - r['wins'])}L",
+                    "n": int(r["matches"]),
+                }
+                for i, (_, r) in enumerate(agg.reset_index(drop=True).iterrows())
+            ]
+            cards.append(_honor_card(
+                "HONOR_TEAM_WR", "最高胜率战队", "战队", _tie_top(entries, eps),
+                f"大场胜率，稳健排序（Wilson 95% 下界）；最小 n={HONOR_MIN_TEAM_MATCHES} 大场；并列 ε≤0.5pct",
+                "大场",
+            ))
+
+        mr = mt.sort_values(["team", "date", "match_id"])
+
+        def _max_streak(ws: pd.Series) -> int:
+            best = cur = 0
+            for w in ws:
+                cur = cur + 1 if w else 0
+                best = max(best, cur)
+            return best
+
+        streaks = mr.groupby("team").agg(streak=("win", _max_streak), matches=("win", "count")).reset_index()
+        streaks = streaks[streaks["matches"] >= HONOR_MIN_TEAM_STREAK_MATCHES]
+        if not streaks.empty:
+            entries = [
+                {
+                    "name": str(r["team"]),
+                    "key": int(r["streak"]),
+                    "value_text": f"{int(r['streak'])} 连胜",
+                    "detail": f"{int(r['matches'])} 场大场样本",
+                    "n": int(r["matches"]),
+                }
+                for _, r in streaks.iterrows() if int(r["streak"]) > 0
+            ]
+            cards.append(_honor_card(
+                "HONOR_TEAM_STREAK", "最长连胜", "战队", _tie_top(entries, 0.0),
+                f"大场连胜（按日期序，平局大场跳过）；最小 n={HONOR_MIN_TEAM_STREAK_MATCHES} 大场；并列取同值",
+                "大场",
+            ))
+
+    # ---------- 战队：场均经济差（单局视角） ----------
+    t = teams_tbl.copy()
+    t["gold_diff"] = pd.to_numeric(t["gold_diff"], errors="coerce")
+    tg = t.groupby("team").agg(n=("gold_diff", "count"), mean=("gold_diff", "mean")).reset_index()
+    tg = tg[tg["n"] >= HONOR_MIN_TEAM_BATTLES]
+    if not tg.empty:
+        entries = [
+            {
+                "name": str(r["team"]),
+                "key": r["mean"],
+                "value_text": f"{r['mean']:+,.0f}",
+                "detail": f"终局金差均值（队视角）· {int(r['n'])} 单局",
+                "n": int(r["n"]),
+            }
+            for _, r in tg.iterrows()
+        ]
+        cards.append(_honor_card(
+            "HONOR_TEAM_GOLD", "场均经济差最高", "战队", _tie_top(entries, 0.5),
+            f"终局金差均值（队视角）；最小 n={HONOR_MIN_TEAM_BATTLES} 单局；并列 ε≤0.5 金",
+            "单局",
+        ))
+
+    # ---------- 选手（分位置，最小 n=10 局） ----------
+    players = _players_source_table()
+    if not players.empty and "position_desc" in players.columns:
+        p = players.copy()
+        p["player_name"] = p["player_name"].astype(str)
+        for col in ("mvp_score", "participation_rate", "hurt_to_hero_total_rate"):
+            p[col] = pd.to_numeric(p.get(col, 0), errors="coerce")
+        p["is_mvp"] = pd.to_numeric(p.get("is_mvp", 0), errors="coerce").fillna(0).astype(int)
+
+        for lane, code in _LANE_RULE_CODE.items():
+            g = (
+                p[p["position_desc"] == lane]
+                .groupby("player_name")
+                .agg(n=("mvp_score", "count"), score=("mvp_score", "mean"), team=("team_name", "first"))
+                .reset_index()
+            )
+            g = g[g["n"] >= HONOR_MIN_PLAYER_GAMES]
+            if g.empty:
+                continue
+            entries = [
+                {
+                    "name": f"{r['player_name']} · {r['team']}",
+                    "key": r["score"],
+                    "value_text": f"{r['score']:.2f}",
+                    "detail": f"mvp_score 均值 · {int(r['n'])} 局",
+                    "n": int(r["n"]),
+                }
+                for _, r in g.iterrows()
+            ]
+            cards.append(_honor_card(
+                f"HONOR_PLAYER_SCORE_{code}", f"{lane} · 位置之最（综合分）", "选手",
+                _tie_top(entries, 0.005),
+                f"{lane} 选手 mvp_score 均值；最小 n={HONOR_MIN_PLAYER_GAMES} 局；并列 ε≤0.005",
+                "局",
+            ))
+
+        gm = (
+            p.groupby("player_name")
+            .agg(n=("is_mvp", "count"), mvp=("is_mvp", "sum"), team=("team_name", "first"))
+            .reset_index()
+        )
+        gm = gm[gm["n"] >= HONOR_MIN_PLAYER_GAMES]
+        if not gm.empty:
+            entries = [
+                {
+                    "name": f"{r['player_name']} · {r['team']}",
+                    "key": int(r["mvp"]),
+                    "value_text": f"{int(r['mvp'])} 次",
+                    "detail": f"MVP 率 {r['mvp'] / r['n']:.0%} · {int(r['n'])} 局",
+                    "n": int(r["n"]),
+                }
+                for _, r in gm.iterrows()
+            ]
+            cards.append(_honor_card(
+                "HONOR_PLAYER_MVP", "MVP 次数最多（全局）", "选手", _tie_top(entries, 0.0),
+                f"is_mvp 求和；最小 n={HONOR_MIN_PLAYER_GAMES} 局；MVP 为全局评选，不分位置；并列取同值",
+                "局",
+            ))
+
+        for lane in ("中路", "发育路"):
+            g = (
+                p[p["position_desc"] == lane]
+                .groupby("player_name")
+                .agg(n=("hurt_to_hero_total_rate", "count"), dmg=("hurt_to_hero_total_rate", "mean"), team=("team_name", "first"))
+                .reset_index()
+            )
+            g = g[g["n"] >= HONOR_MIN_PLAYER_GAMES]
+            if g.empty:
+                continue
+            entries = [
+                {
+                    "name": f"{r['player_name']} · {r['team']}",
+                    "key": r["dmg"],
+                    "value_text": f"{r['dmg']:.1%}",
+                    "detail": f"输出占比均值 · {int(r['n'])} 局",
+                    "n": int(r["n"]),
+                }
+                for _, r in g.iterrows()
+            ]
+            cards.append(_honor_card(
+                f"HONOR_PLAYER_DMG_{_LANE_RULE_CODE[lane]}", f"{lane} · 输出占比最高", "选手",
+                _tie_top(entries, eps),
+                f"{lane} 选手 hurt_to_hero_total_rate 均值；仅中路/发育路；最小 n={HONOR_MIN_PLAYER_GAMES} 局；并列 ε≤0.5pct",
+                "局",
+            ))
+
+    # ---------- 英雄（基于 BP 归档） ----------
+    meta = aggregate_bp_meta()
+    hero_meta = meta.get("heroes") or {}
+    h_rows = [
+        {
+            "英雄": str(name),
+            "picks": int((h.get("pick") or {}).get("k") or 0),
+            "pick_rate": float((h.get("pick") or {}).get("rate") or 0),
+            "ban_rate": float((h.get("ban") or {}).get("rate") or 0),
+            "ban_n": int((h.get("ban") or {}).get("k") or 0),
+            "wr": float((h.get("win") or {}).get("rate") or 0),
+            "wr_lo": float((h.get("win") or {}).get("ci_low") or 0),
+            "wr_n": int((h.get("win") or {}).get("n") or 0),
+        }
+        for name, h in hero_meta.items()
+    ]
+    if h_rows:
+        cand = [r for r in h_rows if r["picks"] >= HONOR_MIN_HERO_PICKS]
+        if cand:
+            entries = [
+                {
+                    "name": r["英雄"], "key": r["wr_lo"], "value_text": f"{r['wr']:.1%}",
+                    "detail": f"Wilson 下界 {r['wr_lo']:.1%} · {r['picks']} 次出场", "n": r["wr_n"],
+                }
+                for r in cand
+            ]
+            cards.append(_honor_card(
+                "HONOR_HERO_WR", "胜率最高英雄", "英雄", _tie_top(entries, eps),
+                f"出场胜率，稳健排序（Wilson 95% 下界）；最小 n={HONOR_MIN_HERO_PICKS} 次出场；并列 ε≤0.5pct",
+                "出场",
+            ))
+        cand = [r for r in h_rows if r["picks"] >= HONOR_MIN_HERO_BAN]
+        if cand:
+            entries = [
+                {
+                    "name": r["英雄"], "key": r["pick_rate"], "value_text": f"{r['pick_rate']:.1%}",
+                    "detail": f"{r['picks']} 次出场", "n": r["picks"],
+                }
+                for r in cand
+            ]
+            cards.append(_honor_card(
+                "HONOR_HERO_PICK", "登场率最高英雄", "英雄", _tie_top(entries, eps),
+                f"pick 率（出场 ÷ 归档对局）；最小 n={HONOR_MIN_HERO_BAN} 次出场；并列 ε≤0.5pct",
+                "出场",
+            ))
+        cand = [r for r in h_rows if r["ban_n"] >= HONOR_MIN_HERO_BAN]
+        if cand:
+            entries = [
+                {
+                    "name": r["英雄"], "key": r["ban_rate"], "value_text": f"{r['ban_rate']:.1%}",
+                    "detail": f"被 ban {r['ban_n']} 次", "n": r["ban_n"],
+                }
+                for r in cand
+            ]
+            cards.append(_honor_card(
+                "HONOR_HERO_BAN", "Ban 率最高英雄", "英雄", _tie_top(entries, eps),
+                f"ban 率（被 ban ÷ 归档对局）；最小 n={HONOR_MIN_HERO_BAN} 次被 ban；并列 ε≤0.5pct",
+                "局",
+            ))
+
+    copy_texts = []
+    for c in cards:
+        parts = "、".join(f"{e['name']}（{e['value_text']}）" for e in c["entries"])
+        ns = " / ".join(str(e["n"]) for e in c["entries"])
+        copy_texts.append(
+            f"【{season_label}·{c['title']}】{parts}（样本 n={ns}）\n"
+            f"口径：{c['rule_summary']}（规则ID {c['rule_id']} {HONORS_RULES_VERSION}）\n"
+            f"数据源：{c['source_tag']}；生成时间 {generated_at}\n"
+            f"注：非官方评选，转载请附口径。"
+        )
+
+    return {
+        "state": "ok",
+        "version": HONORS_RULES_VERSION,
+        "season_label": season_label,
+        "generated_at": generated_at,
+        "cards": cards,
+        "copy_texts": copy_texts,
+    }
+
+
 def detect_events(snapshots: list[dict[str, Any]]) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     for i in range(1, len(snapshots)):

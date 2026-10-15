@@ -31,6 +31,7 @@ from kpl_official_core import (
     build_lane_resource_timeline,
     build_postmatch_brief,
     build_proxy_standings,
+    build_season_honors,
     build_winprob_benchmark,
     classify_battle_swing,
     detect_events,
@@ -82,6 +83,7 @@ SRC_STYLES = {
     "舆情": (ORANGE, "#FFF4E6"),
     "营地": (MUTED, "#F1F3F5"),
     "人工": (INK, "#F1F3F5"),
+    "自算荣誉": (INK, "#F1F3F5"),
 }
 
 TEAM_COLORS = {
@@ -1401,6 +1403,15 @@ def render_schedule(matches: pd.DataFrame, battles: pd.DataFrame, archive: pd.Da
                     src_title="predictions / raw_snapshots 最新 mtime", bar="purple"),
     ], cols="1.5fr 1fr 1fr 1fr"), unsafe_allow_html=True)
 
+    honors = cached_season_honors()
+    if honors.get("state") == "ok":
+        st.markdown(panel_html("高光赛季之最（P13）", "自算荣誉",
+                               src_title=f"规则 {honors['version']} · 并列全展示 · 稳健排序（Wilson 下界）· 悬停卡片看口径"),
+                    unsafe_allow_html=True)
+        st.markdown(honor_gallery_html(honors["cards"]), unsafe_allow_html=True)
+        with st.expander("复制口径文案（含规则 ID 与样本 n）"):
+            st.code("\n\n".join(honors["copy_texts"]), language=None)
+
     st.markdown(panel_html("按日期覆盖", "官方"), unsafe_allow_html=True)
     st.plotly_chart(coverage_chart(matches, battles), width="stretch")
 
@@ -1730,6 +1741,46 @@ def player_card_html(p: dict) -> str:
         f'<div class="pcard-hero">{hero}</div>'
         f'<div class="pcard-meta"><span>KDA {kda}</span><span>经济 {gold}</span><span>参团 {part}</span></div>'
         f'</div>')
+
+
+_HONOR_CSS = """
+.hg-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.hg-card{background:var(--card,#FFFFFF);border:1px solid var(--line,#E3E8EE);border-top:3px solid var(--blue,#005691);
+         border-radius:6px;padding:9px 12px 10px;display:flex;flex-direction:column;gap:3px;min-height:96px}
+.hg-rule{font-size:10px;color:var(--muted,#8A94A6);letter-spacing:.3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.hg-src{color:#1F2937;background:#F1F3F5;border:1px solid #B8C2CC;border-radius:3px;padding:0 4px;font-size:9px}
+.hg-tie{color:#E67E00;font-size:10px}
+.hg-title{font-size:12px;color:var(--ink2,#5D6D7E)}
+.hg-name{font-size:14px;font-weight:700;color:var(--ink,#1F2937);line-height:1.3}
+.hg-value{font-size:17px;color:var(--blue,#005691);line-height:1.1}
+.hg-n{font-size:11px;color:var(--muted,#8A94A6);font-weight:400}
+.hg-detail{font-size:10.5px;color:var(--muted,#8A94A6);margin-top:auto}
+"""
+
+
+def honor_gallery_html(cards: list[dict]) -> str:
+    cells = []
+    for c in cards:
+        names = "、".join(_esc(e["name"]) for e in c["entries"])
+        first = c["entries"][0] if c["entries"] else {"value_text": "—", "n": 0, "detail": ""}
+        tie = '<span class="hg-tie">并列</span>' if c["tie"] else ""
+        rule_tip = html.escape(str(c.get("rule_summary") or ""))
+        cells.append(
+            f'<div class="hg-card" title="{rule_tip}">'
+            f'<div class="hg-rule"><span class="mono">{_esc(c["rule_id"])}</span>'
+            f'<span class="hg-src">{_esc(c["source_tag"])}</span>{tie}</div>'
+            f'<div class="hg-title">{_esc(c["title"])}</div>'
+            f'<div class="hg-name">{names}</div>'
+            f'<div class="hg-value mono">{_esc(first["value_text"])} <span class="hg-n">n={first["n"]}</span></div>'
+            f'<div class="hg-detail">{_esc(first["detail"])}</div>'
+            f'</div>'
+        )
+    return f"<style>{_HONOR_CSS}</style><div class='hg-wrap'>" + "".join(cells) + "</div>"
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_season_honors() -> dict:
+    return build_season_honors()
 
 
 @st.cache_data(ttl=600, show_spinner=False)
