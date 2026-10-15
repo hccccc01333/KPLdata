@@ -2647,6 +2647,263 @@ def generate_battle_report(
     return "\n".join(lines)
 
 
+# ---------------- P18 · 赛后教练简报（规则版） ----------------
+
+def load_analysis_table(name: str) -> pd.DataFrame:
+    """读取 ``data/analysis/{name}.csv``（matches / battles / teams / events）；缺失或损坏返回空表。"""
+    path = PROJECT_ROOT / "data" / "analysis" / f"{name}.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path)
+    except (OSError, pd.errors.ParserError):
+        return pd.DataFrame()
+
+
+def _fmt_signed_cn(v: Any) -> str:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return "—"
+    if f != f:
+        return "—"
+    return f"{f:+,.0f}"
+
+
+def _fmt_min_cn(v: Any) -> str:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return "—"
+    if f != f:
+        return "—"
+    return f"{f:.1f}′"
+
+
+def build_postmatch_brief(match_id: str) -> dict[str, Any]:
+    """P18 · 赛后教练简报（规则版，无 LLM）：Markdown + meta。
+
+    P0 范围：结果与结论三句话、单局结果表、关键转折点、BP 与阵容、
+    资源与经济、选手要点、数据附录；舆情章节无数据时跳过（不生成占位情绪）。
+    数字全部来自本地数据（快照 / 分析表 / 模型产物），带来源标签与模型版本。
+    """
+    matches = load_analysis_table("matches")
+    battles = load_analysis_table("battles")
+    if matches.empty or "match_id" not in matches.columns:
+        return {"state": "empty", "message": "analysis/matches.csv 为空，请先运行 scripts/build_history_dataset.py"}
+    m = matches[matches["match_id"].astype(str) == str(match_id)]
+    if m.empty:
+        return {"state": "empty", "message": f"未找到大场 {match_id}"}
+    m = m.iloc[0]
+    team1, team2 = str(m.get("team1") or ""), str(m.get("team2") or "")
+    date, stage = str(m.get("date") or ""), str(m.get("stage") or "未知赛段")
+
+    b_sub = battles[battles["match_id"].astype(str) == str(match_id)].copy() if not battles.empty else pd.DataFrame()
+    if not b_sub.empty:
+        b_sub = b_sub.sort_values("game_no")
+    wins1 = int((b_sub["winner"] == team1).sum()) if not b_sub.empty else 0
+    wins2 = int((b_sub["winner"] == team2).sum()) if not b_sub.empty else 0
+
+    artifact = load_model() or {}
+    train_status = _read_json_file(REALTIME_DIR / "train_status.json") or {}
+    model_ver = str(artifact.get("version") or train_status.get("version") or "—")
+    model_name = str(artifact.get("model_name") or train_status.get("model_name") or "—")
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    games: list[dict[str, Any]] = []
+    for _, r in b_sub.iterrows():
+        bid = str(r.get("battle_id"))
+        snaps = load_battle_jsons(RAW_DIR / bid) if (RAW_DIR / bid).exists() else []
+        win_camp = 1 if (str(r.get("winner") or "") == team1) else 2 if (str(r.get("winner") or "") == team2) else 0
+        swing = classify_battle_swing(snaps, win_camp) if (snaps and win_camp) else {}
+        games.append(
+            {
+                "battle_id": bid,
+                "game_no": int(r.get("game_no") or len(games) + 1),
+                "winner": str(r.get("winner") or ""),
+                "team1": str(r.get("team1") or ""),
+                "team2": str(r.get("team2") or ""),
+                "duration_min": r.get("duration_min"),
+                "gold_diff": r.get("gold_diff"),
+                "kill_diff": r.get("kill_diff"),
+                "tower_diff": r.get("tower_diff"),
+                "objective_diff": r.get("objective_diff"),
+                "has_timeline": bool(r.get("has_timeline")),
+                "snapshot_count": r.get("snapshot_count"),
+                "comeback": bool(swing.get("comeback")),
+                "snaps": snaps,
+            }
+        )
+
+    key = None
+    if games:
+        pool = [g for g in games if g["has_timeline"]] or games
+        comeback_pool = [g for g in pool if g["comeback"]]
+        key = max(comeback_pool or pool, key=lambda g: float(g["duration_min"] or 0))
+
+    tl = _replay_v11_timeline(key["battle_id"]).reset_index(drop=True) if key else pd.DataFrame()
+    events = detect_events(key["snaps"]) if (key and key["snaps"]) else []
+    turns = detect_turning_points(tl, events) if (key and not tl.empty) else []
+    bp = load_battle_bp(key["battle_id"]) if key else {}
+    players = (load_battle_players(key["battle_id"]).get("players") or []) if key else []
+    key_no = key["game_no"] if key else "—"
+
+    lines: list[str] = []
+    lines.append(f"# 赛后教练简报 · {team1} vs {team2}")
+    lines.append("")
+    lines.append(f"> 生成时间：{generated_at} · 大场 `{match_id}` · 模型：{model_ver}（{model_name}）")
+    lines.append("> 口径：事件 / 经济 / BP / 选手为「官方」字段；胜率类为「估算」（V11 校准）。")
+    lines.append("")
+
+    lines.append("## 1. 结果与结论")
+    lines.append("")
+    lines.append(f"- **{date} · {stage} · 大场比分 {wins1} : {wins2}**")
+    if key:
+        k_tag = "（翻盘局）" if key["comeback"] else ""
+        lines.append(
+            f"- 关键局：第 {key_no} 局，时长 {_fmt_min_cn(key['duration_min'])}{k_tag}，"
+            f"终局金差 {_fmt_signed_cn(key['gold_diff'])}（{key['team1']} 为正）。"
+        )
+    swing_line = "胜率曲线波动：—"
+    if not tl.empty and len(tl) >= 2:
+        probs = pd.to_numeric(tl["camp1_win_prob"], errors="coerce")
+        diffs = probs.diff().abs()
+        if diffs.notna().any():
+            idx = int(diffs.idxmax())
+            direction = "蓝方" if float(probs.loc[idx]) >= float(probs.loc[idx - 1]) else "红方"
+            swing_line = (
+                f"胜率曲线最大摆动在第 {float(tl.loc[idx, 'minute']):.0f}′"
+                f"（{direction} +{float(diffs.loc[idx]):.0%}），对应当刻金差 {_fmt_signed_cn(tl.loc[idx, 'gold_diff'])}"
+            )
+    lines.append(f"- {swing_line}（估算 · V11）。")
+    lines.append("- 舆情焦点：暂无数据（P15 待建），本节跳过，不生成占位情绪数字。")
+    lines.append("")
+
+    lines.append("## 2. 单局结果（官方）")
+    lines.append("")
+    lines.append("> 差值口径：均为该局蓝方（camp1）为正。")
+    lines.append("")
+    lines.append("| 局 | 蓝方 | 胜方 | 时长 | 金差 | 击杀差 | 推塔差 | 资源差 | 数据 |")
+    lines.append("|----|------|------|------|------|--------|--------|--------|------|")
+    for g in games:
+        data_tag = "CLEAN" if g["has_timeline"] else f"回补帧（{int(g['snapshot_count'] or 0)} 切片）"
+        lines.append(
+            f"| 第 {g['game_no']} 局 | {g['team1'] or '—'} | {g['winner'] or '—'} | {_fmt_min_cn(g['duration_min'])} | "
+            f"{_fmt_signed_cn(g['gold_diff'])} | {_fmt_signed_cn(g['kill_diff'])} | "
+            f"{_fmt_signed_cn(g['tower_diff'])} | {_fmt_signed_cn(g['objective_diff'])} | {data_tag} |"
+        )
+    lines.append("")
+
+    lines.append(f"## 3. 关键转折点（第 {key_no} 局 · 估算）")
+    lines.append("")
+    if turns:
+        top_turns = sorted(turns, key=lambda t: abs(float(t.get("delta") or 0)), reverse=True)[:5]
+        for t in top_turns:
+            ev_txt = "、".join((t.get("events") or [])[:3])
+            ev_suffix = f" · {ev_txt}" if ev_txt else ""
+            lines.append(
+                f"- {float(t.get('minute') or 0):.0f}′ · 胜率 {t.get('label')}"
+                f"（{float(t.get('prob_before') or 0):.0%} → {float(t.get('prob_after') or 0):.0%}）{ev_suffix}"
+            )
+    else:
+        lines.append("- 无转折点数据（快照不足或时间线为空）。")
+    lines.append("")
+
+    lines.append(f"## 4. BP 与阵容（官方 · 第 {key_no} 局）")
+    lines.append("")
+    steps = (bp.get("steps") or []) if bp else []
+    if steps:
+        for camp, camp_name in ((1, bp.get("camp1_team") or team1), (2, bp.get("camp2_team") or team2)):
+            picks = [s["hero_name"] for s in steps if s.get("action") == "pick" and int(s.get("camp") or 0) == camp]
+            bans = [s["hero_name"] for s in steps if s.get("action") == "ban" and int(s.get("camp") or 0) == camp]
+            lines.append(f"- **{camp_name}**：pick {' / '.join(picks) or '—'}；ban {' / '.join(bans) or '—'}")
+        if bp.get("incomplete"):
+            lines.append("- ⚠️ BP 列表不完整（非 20 步）。")
+    else:
+        lines.append("- 无 BP 数据。")
+    lines.append("")
+
+    lines.append(f"## 5. 资源与经济（官方 · 第 {key_no} 局）")
+    lines.append("")
+    if key:
+        lines.append(
+            f"- 终局：金差 {_fmt_signed_cn(key['gold_diff'])} · 击杀差 {_fmt_signed_cn(key['kill_diff'])} · "
+            f"推塔差 {_fmt_signed_cn(key['tower_diff'])} · 资源差 {_fmt_signed_cn(key['objective_diff'])}"
+            f"（蓝方 {key['team1']} 为正）"
+        )
+    if players:
+        by_pos: dict[str, dict[int, float]] = {}
+        for p in players:
+            by_pos.setdefault(str(p.get("position_name") or "—"), {})[int(p.get("camp") or 0)] = float(p.get("gold") or 0)
+        pairs = [(pos, d[1] - d[2]) for pos, d in by_pos.items() if 1 in d and 2 in d]
+        pairs.sort(key=lambda x: -abs(x[1]))
+        if pairs and key:
+            lines.append(
+                f"- 分路经济对位（{key['team1']} − {key['team2']}）："
+                + "；".join(f"{pos} {_fmt_signed_cn(d)}" for pos, d in pairs[:3])
+            )
+    lines.append("")
+
+    lines.append(f"## 6. 选手要点（官方 · 第 {key_no} 局）")
+    lines.append("")
+    if players:
+        lines.append("| 阵营 | 选手 | 英雄 | 分路 | KDA | 经济 | 参团 | 输出占比 |")
+        lines.append("|------|------|------|------|-----|------|------|----------|")
+        for camp in (1, 2):
+            side = [p for p in players if int(p.get("camp") or 0) == camp]
+            side.sort(key=lambda p: -float(p.get("mvp_score") or 0))
+            for p in side[:3]:
+                mvp = " · MVP" if p.get("is_mvp") else ""
+                hurt = p.get("hurt_to_hero_total_rate")
+                part = p.get("participation_rate")
+                hurt_txt = f"{float(hurt):.1%}" if hurt is not None else "—"
+                part_txt = f"{float(part):.0f}%" if part is not None else "—"
+                lines.append(
+                    f"| {p.get('camp_name') or camp} | {p.get('player_name')}{mvp} | {p.get('hero_name')} | "
+                    f"{p.get('position_name') or '—'} | {p.get('kda_text') or '—'} | "
+                    f"{int(p.get('gold') or 0):,} | {part_txt} | {hurt_txt} |"
+                )
+    else:
+        lines.append("- 无选手面板数据。")
+    lines.append("")
+
+    lines.append("## 7. 舆情与弹幕")
+    lines.append("")
+    lines.append("无数据（P15 待建），已跳过。")
+    lines.append("")
+
+    lines.append("## 8. 数据附录与来源")
+    lines.append("")
+    lines.append(f"- 模型：{model_ver}（{model_name}）；训练时间 {train_status.get('trained_at') or '—'}")
+    _hb = train_status.get("holdout_real_brier")
+    _he = train_status.get("holdout_early_brier")
+    lines.append(
+        "- holdout（clean 真实局）：Brier(全) "
+        + (f"{float(_hb):.4f}" if _hb is not None else "—")
+        + " · early "
+        + (f"{float(_he):.4f}" if _he is not None else "—")
+    )
+    lines.append(
+        "- 快照范围："
+        + "；".join(f"第 {g['game_no']} 局 `{g['battle_id']}`（{int(g['snapshot_count'] or 0)} 切片）" for g in games)
+    )
+    lines.append("- 口径与术语：`docs/product/00-术语表.md`；生成器：`scripts/kpl_official_core.build_postmatch_brief`（规则版，无 LLM）")
+    md = "\n".join(lines) + "\n"
+
+    meta = {
+        "match_id": str(match_id),
+        "generated_at": generated_at,
+        "model_version": model_ver,
+        "model_name": model_name,
+        "trained_at": train_status.get("trained_at"),
+        "key_battle": key["battle_id"] if key else None,
+        "battles": [g["battle_id"] for g in games],
+        "chapters_enabled": ["结果与结论", "单局结果", "关键转折点", "BP与阵容", "资源与经济", "选手要点", "数据附录"],
+        "chapters_skipped": ["舆情与弹幕（P15 无数据）"],
+    }
+    return {"state": "ok", "markdown": md, "meta": meta}
+
+
 def detect_events(snapshots: list[dict[str, Any]]) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     for i in range(1, len(snapshots)):

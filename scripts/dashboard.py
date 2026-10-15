@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kpl_official_core import (
     aggregate_bp_meta,
     build_lane_resource_timeline,
+    build_postmatch_brief,
     build_proxy_standings,
     build_winprob_benchmark,
     classify_battle_swing,
@@ -1731,6 +1732,11 @@ def player_card_html(p: dict) -> str:
         f'</div>')
 
 
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_postmatch_brief(match_id: str) -> dict:
+    return build_postmatch_brief(match_id)
+
+
 def render_replay(matches: pd.DataFrame, battles: pd.DataFrame) -> None:
     st.markdown(section_head(
         "单局复盘", "大场 → 对局两级下钻 · BP / 胜率 / 分路 / 选手 / 事件",
@@ -1743,16 +1749,21 @@ def render_replay(matches: pd.DataFrame, battles: pd.DataFrame) -> None:
     m_labels = [f"{r.date} · {r.team1} vs {r.team2} · {r.get('bo_type') or ''}" for _, r in m_rows.iterrows()]
     m_map = dict(zip(m_labels, m_rows["match_id"]))
     battle_match_ids: set[str] = set(battles["match_id"]) if not battles.empty else set()
-    def_idx = 0
-    if "drill_match" in st.session_state and st.session_state["drill_match"] in m_map.values():
-        cand_idx = list(m_map.values()).index(st.session_state["drill_match"])
-        if m_map[m_labels[cand_idx]] in battle_match_ids:
+    if not battles.empty and "has_timeline" in battles.columns:
+        tl_match_ids: set[str] = set(battles.loc[battles["has_timeline"].astype(bool), "match_id"])
+    else:
+        tl_match_ids = set()
+    order = list(m_map.values())
+
+    def_idx = None
+    if "drill_match" in st.session_state and st.session_state["drill_match"] in order:
+        cand_idx = order.index(st.session_state["drill_match"])
+        if order[cand_idx] in battle_match_ids:
             def_idx = cand_idx
-    if m_map[m_labels[def_idx]] not in battle_match_ids:
-        for i, lab in enumerate(m_labels):
-            if m_map[lab] in battle_match_ids:
-                def_idx = i
-                break
+    if def_idx is None:  # 默认优先「有时间线可复盘」的大场
+        def_idx = next((i for i, mid_ in enumerate(order) if mid_ in tl_match_ids), None)
+    if def_idx is None:
+        def_idx = next((i for i, mid_ in enumerate(order) if mid_ in battle_match_ids), 0)
     m_sel = st.selectbox("大场", m_labels, index=def_idx, key="drill_match_sel", width="stretch")
     mid = m_map[m_sel]
     st.session_state["drill_match"] = mid
@@ -1762,7 +1773,14 @@ def render_replay(matches: pd.DataFrame, battles: pd.DataFrame) -> None:
         return
     b_labels = [f"第 {r.game_no} 局 · {r.team1} vs {r.team2} · {fmt_min(r.get('duration_min'))}"
                 for _, r in b_sub.iterrows()]
-    b_sel = st.selectbox("对局", b_labels, index=len(b_labels) - 1, key="drill_battle_sel", width="stretch")
+    # 默认选可复盘性最好的对局：有时间线优先 → 快照切片多 → 局序靠后
+    rank = b_sub.copy()
+    rank["_tl"] = rank["has_timeline"].astype(bool) if "has_timeline" in rank.columns else False
+    rank["_snap"] = pd.to_numeric(rank.get("snapshot_count", 0), errors="coerce").fillna(0)
+    rank = rank.sort_values(["_tl", "_snap", "game_no"], ascending=[False, False, False])
+    best_bid = str(rank.iloc[0]["battle_id"])
+    def_b = next((i for i, (_, r) in enumerate(b_sub.iterrows()) if str(r["battle_id"]) == best_bid), len(b_labels) - 1)
+    b_sel = st.selectbox("对局", b_labels, index=def_b, key="drill_battle_sel", width="stretch")
     rec = b_sub.iloc[b_labels.index(b_sel)]
     bid = str(rec["battle_id"])
     payload = drilldown_payload(bid)
@@ -1784,6 +1802,30 @@ def render_replay(matches: pd.DataFrame, battles: pd.DataFrame) -> None:
         f'</div>{cmp_block}'
     )
     st.markdown(panel_html("对局", body=head_body), unsafe_allow_html=True)
+
+    brief = cached_postmatch_brief(str(rec["match_id"]))
+    if brief.get("state") == "ok":
+        b_dl, b_save, b_note = st.columns([1.5, 1.3, 4.2])
+        with b_dl:
+            st.download_button(
+                "下载教练简报（MD）",
+                data=brief["markdown"].encode("utf-8"),
+                file_name=f"brief_{rec['match_id']}_{brief['meta']['generated_at'][:10]}.md",
+                mime="text/markdown",
+                width="stretch",
+                key=f"brief_dl_{rec['match_id']}",
+            )
+        with b_save:
+            if st.button("存档到 data/reports/", key=f"brief_save_{rec['match_id']}", width="stretch"):
+                out_dir = PROJECT_ROOT / "data" / "reports" / str(rec["match_id"])
+                out_dir.mkdir(parents=True, exist_ok=True)
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                (out_dir / f"brief_postmatch_{ts}.md").write_text(brief["markdown"], encoding="utf-8")
+                (out_dir / f"brief_postmatch_{ts}.meta.json").write_text(
+                    json.dumps(brief["meta"], ensure_ascii=False, indent=2), encoding="utf-8")
+                st.success(f"已存档 {out_dir.name}/brief_postmatch_{ts}.md")
+        with b_note:
+            st.caption("P18 · 规则版简报：含模型版本 / 生成时间 / 来源标签；舆情章节待 P15 接入")
 
     tab_all, tab_bp, tab_p07, tab_lane, tab_players, tab_ev = st.tabs(
         ["总览", "BP 看板", "胜率与金差", "经济与资源", "选手面板", "事件归因"])
