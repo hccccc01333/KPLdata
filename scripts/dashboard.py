@@ -28,7 +28,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kpl_official_core import (
     aggregate_bp_meta,
+    build_hero_matchups,
+    build_hero_pool,
     build_lane_resource_timeline,
+    build_phase_attribution,
     build_postmatch_brief,
     build_proxy_standings,
     build_season_honors,
@@ -84,6 +87,8 @@ SRC_STYLES = {
     "营地": (MUTED, "#F1F3F5"),
     "人工": (INK, "#F1F3F5"),
     "自算荣誉": (INK, "#F1F3F5"),
+    "描述性": (TEAL, "#EAF7F6"),
+    "叙事因子": (MUTED, "#F1F3F5"),
 }
 
 TEAM_COLORS = {
@@ -1778,6 +1783,33 @@ def honor_gallery_html(cards: list[dict]) -> str:
     return f"<style>{_HONOR_CSS}</style><div class='hg-wrap'>" + "".join(cells) + "</div>"
 
 
+_ATTR_CSS = """
+.at-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.at-card{background:var(--card,#FFFFFF);border:1px solid var(--line,#E3E8EE);border-left:3px solid var(--teal,#20B2AA);
+         border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.at-head{display:flex;align-items:baseline;gap:8px}
+.at-v{font-size:18px;color:var(--teal,#20B2AA);font-weight:700}
+.at-t{font-size:12px;color:var(--ink2,#5D6D7E)}
+.at-h{font-size:13px;color:var(--ink,#1F2937);font-weight:600;line-height:1.35}
+.at-n{font-size:11px;color:var(--muted,#8A94A6)}
+"""
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_phase_attribution(battle_id: str) -> dict:
+    return build_phase_attribution(battle_id)
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_hero_pool(name: str, kind: str) -> dict:
+    return build_hero_pool(name, kind)
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_hero_matchups(position: str) -> dict:
+    return build_hero_matchups(position)
+
+
 @st.cache_data(ttl=600, show_spinner=False)
 def cached_season_honors() -> dict:
     return build_season_honors()
@@ -2007,6 +2039,47 @@ def render_replay(matches: pd.DataFrame, battles: pd.DataFrame) -> None:
                 metric_card("早期金差均值", fmt_signed(swing.get("early_avg_gold_diff"), 0), "官方",
                             bar="blue"),
             ], cols="1fr 1fr 1fr"), unsafe_allow_html=True)
+        att = cached_phase_attribution(bid)
+        if att.get("state") == "ok" and att.get("phases"):
+            st.markdown(panel_html("阶段切片（P12 · 官方字段差分）", "官方",
+                                   src_title="≤8′ / 9–15′ / 16′+ 三段期末与段内变化；胜率均值=估算（V11）"),
+                        unsafe_allow_html=True)
+            ph_rows = []
+            for ph in att["phases"]:
+                prob_txt = f"{ph['prob_mean']:.0%}" if ph.get("prob_mean") is not None else "—"
+                ph_rows.append({
+                    "阶段": ph["label"],
+                    "经济差(期末)": fmt_signed(ph["end"]["gd"], 0),
+                    "金差段内变化": fmt_signed(ph["delta"]["gd"], 0),
+                    "击杀差": fmt_signed(ph["end"]["kd"], 0),
+                    "推塔差": fmt_signed(ph["end"]["td"], 0),
+                    "资源差": fmt_signed(ph["end"]["rd"], 0),
+                    "胜率均值": prob_txt,
+                })
+            data_table(pd.DataFrame(ph_rows), height=185)
+            if att.get("cards"):
+                st.markdown(panel_html("归因卡（描述性 · 措辞「伴随」· 非因果）", "描述性",
+                                       src_title="描述性统计，未做因果识别；禁止改写为因果结论"),
+                            unsafe_allow_html=True)
+                cards_html = "".join(
+                    f'<div class="at-card"><div class="at-head"><span class="at-v mono">{_esc(c["value"])}</span>'
+                    f'<span class="at-t">{_esc(c["title"])}</span></div>'
+                    f'<div class="at-h">{_esc(c["headline"])}</div>'
+                    f'<div class="at-n">{_esc(c["note"])}</div></div>'
+                    for c in att["cards"]
+                )
+                st.markdown(f"<style>{_ATTR_CSS}</style><div class='at-grid'>{cards_html}</div>",
+                            unsafe_allow_html=True)
+            if att.get("factors"):
+                st.markdown(panel_html("叙事因子（非权重 · 禁止按模型权重引用）", "叙事因子",
+                                       src_title="FeatureBuilder.explain · 非 SHAP · 仅叙事用途"),
+                            unsafe_allow_html=True)
+                fac_rows = [{
+                    "因子": f["factor"],
+                    "指向": f["leader"] or "—",
+                    "说明": f["description"],
+                } for f in att["factors"]]
+                data_table(pd.DataFrame(fac_rows), height=210)
         ev_df = pd.DataFrame(events_list)
         if ev_df.empty:
             st.markdown(empty_state("暂无事件", "快照差分未识别到一血/推塔/龙类事件。"),
@@ -2127,6 +2200,27 @@ def render_teams(matches: pd.DataFrame, battles: pd.DataFrame, teams: pd.DataFra
         st.markdown(pt_table(["日期", "局", "蓝方", "红方", "结果", "时长", "金差"],
                              r_rows, num_cols={1, 5, 6}), unsafe_allow_html=True)
 
+    pool = cached_hero_pool(team, "team")
+    if pool.get("state") == "ok":
+        br = pool["breadth"]
+        st.markdown(panel_html(f"{team} 英雄池（P11）", "官方",
+                               src_title=f"广度：池 {br['pool_size']} · HHI {br['hhi']} · 有效 {br['effective']}"
+                                         f"｜生疏 = 过去 ≥{pool['stale_threshold']} 局未用｜胜率=已完赛"),
+                    unsafe_allow_html=True)
+        pool_rows = []
+        for r in pool["rows"][:15]:
+            wr_txt = f"{r['wr']:.1%}" if r["wr"] is not None else "—"
+            ci_txt = f"[{r['ci_low']:.1%}, {r['ci_high']:.1%}]" if r["ci_low"] is not None else "—"
+            pool_rows.append([
+                lead_cell(hero_icon(r["hero"]), r["hero"], size="sm", round_=True),
+                str(r["games"]),
+                wr_txt,
+                ci_txt,
+                '<span class="bdg b-wait">生疏</span>' if r["stale"] else "",
+            ])
+        st.markdown(pt_table(["英雄", "出场", "胜率", "胜率CI", "状态"], pool_rows, num_cols={1}),
+                    unsafe_allow_html=True)
+
 
 # ---------------- 模块：选手排行 ----------------
 PLAYER_METRICS = {
@@ -2204,6 +2298,34 @@ def render_players() -> None:
     st.markdown(pt_table(["排名", "选手", "战队", "出场", "KDA", "MVP", "参团", metric],
                          p_rows, num_cols={0, 3, 4, 5}), unsafe_allow_html=True)
 
+    st.markdown(panel_html("选手英雄池（P11）", "官方",
+                           src_title="池广度 = 不重复英雄数 / HHI / 有效英雄数 exp(Shannon)；胜率=已完赛"),
+                unsafe_allow_html=True)
+    pool_labels = agg["player_label"].head(30).tolist()
+    name_by_label = dict(zip(agg["player_label"], agg["player_name"]))
+    if pool_labels:
+        pool_sel = st.selectbox("选手", pool_labels, key="pool_player", width="stretch")
+        ppool = cached_hero_pool(str(name_by_label.get(pool_sel, pool_sel)), "player")
+        if ppool.get("state") == "ok":
+            br = ppool["breadth"]
+            st.caption(f"池 {br['pool_size']} · HHI {br['hhi']} · 有效英雄 {br['effective']} · 共 {ppool['total_games']} 局"
+                       f"｜生疏 = 过去 ≥{ppool['stale_threshold']} 局未用")
+            pp_rows = []
+            for r in ppool["rows"][:12]:
+                wr_txt = f"{r['wr']:.1%}" if r["wr"] is not None else "—"
+                ci_txt = f"[{r['ci_low']:.1%}, {r['ci_high']:.1%}]" if r["ci_low"] is not None else "—"
+                pp_rows.append([
+                    lead_cell(hero_icon(r["hero"]), r["hero"], size="sm", round_=True),
+                    str(r["games"]),
+                    wr_txt,
+                    ci_txt,
+                    '<span class="bdg b-wait">生疏</span>' if r["stale"] else "",
+                ])
+            st.markdown(pt_table(["英雄", "出场", "胜率", "胜率CI", "状态"], pp_rows, num_cols={1}),
+                        unsafe_allow_html=True)
+        else:
+            st.caption(ppool.get("message") or "暂无数据")
+
 
 # ---------------- 模块：英雄 Meta ----------------
 def render_heroes() -> None:
@@ -2277,6 +2399,30 @@ def render_heroes() -> None:
             data_table(cdf, height=380)
     except Exception:
         pass
+
+    st.markdown(panel_html("同位置对位（P11 · 历史对位关联）", "代理",
+                           src_title="同局同位置、不同战队；方向 = 蓝方英雄 vs 红方英雄；n<8 标「不足」，不作机制克制断言"),
+                unsafe_allow_html=True)
+    mu_pos = st.selectbox("对位位置", LANES, key="mu_pos", width="stretch")
+    mu = cached_hero_matchups(mu_pos)
+    if mu.get("state") == "ok" and mu.get("rows"):
+        mu_rows = []
+        for r in mu["rows"][:25]:
+            wr_txt = f"{r['wr']:.1%}"
+            ci_txt = f"[{r['ci_low']:.1%}, {r['ci_high']:.1%}]"
+            tag = '<span class="bdg b-wait">不足</span>' if r["insufficient"] else ""
+            mu_rows.append([
+                lead_cell(hero_icon(r["hero_blue"]), r["hero_blue"], size="sm", round_=True),
+                lead_cell(hero_icon(r["hero_red"]), r["hero_red"], size="sm", round_=True),
+                str(r["n"]),
+                wr_txt,
+                ci_txt,
+                tag,
+            ])
+        st.markdown(pt_table(["蓝方英雄", "红方英雄", "n", "蓝方胜率", "胜率CI", "判定"], mu_rows, num_cols={2, 3}),
+                    unsafe_allow_html=True)
+    else:
+        st.caption("该位置暂无可展示的历史对位（样本不足）。")
 
 
 # ---------------- 模块：数据健康 ----------------

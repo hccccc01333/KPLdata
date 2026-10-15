@@ -25,11 +25,19 @@ if sys.platform == "win32":
 
 import pandas as pd
 
-from kpl_official_core import PROJECT_ROOT, ScheduleCenter, detect_events, load_battle_jsons
+from kpl_official_core import (
+    PROJECT_ROOT,
+    ScheduleCenter,
+    detect_events,
+    load_battle_jsons,
+    load_battle_players,
+)
 
 
 ANALYSIS_DIR = PROJECT_ROOT / "data" / "analysis"
 ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def save_table(df: pd.DataFrame, name: str):
@@ -58,6 +66,22 @@ def build():
     battle_rows = []
     team_rows = []
     event_rows = []
+    player_rows = []
+
+    # 选手/战队图标：payload 不含 icon 字段，按名称从既有 players 表继承（缺失留空）
+    player_icon_map: dict[str, str] = {}
+    team_icon_map: dict[str, str] = {}
+    old_players_path = PROCESSED_DIR / "players.csv"
+    if old_players_path.exists():
+        try:
+            _old = pd.read_csv(old_players_path)
+            if "player_icon" in _old.columns:
+                player_icon_map = dict(zip(_old["player_name"].astype(str), _old["player_icon"].fillna("").astype(str)))
+            if "team_icon" in _old.columns:
+                team_icon_map = dict(zip(_old["team_name"].astype(str), _old["team_icon"].fillna("").astype(str)))
+            print(f"inherited icons: players={len(player_icon_map)} teams={len(team_icon_map)}")
+        except (OSError, pd.errors.ParserError):
+            pass
 
     if archive.empty:
         raise RuntimeError("schedule archive 为空，请先运行 build_schedule_archive.py")
@@ -148,6 +172,44 @@ def build():
                     }
                 )
 
+            players_payload = load_battle_players(battle_id)
+            for p in players_payload.get("players") or []:
+                kill = int(p.get("kill_num") or 0)
+                death = int(p.get("death_num") or 0)
+                assist = int(p.get("assist_num") or 0)
+                pname = str(p.get("player_name") or "")
+                tname = str(p.get("team_name") or "")
+                player_rows.append(
+                    {
+                        "league_id": match.get("league_id"),
+                        "match_id": match.get("match_id"),
+                        "battle_id": battle_id,
+                        "date": match.get("date"),
+                        "game_no": seq,
+                        "team_id": p.get("team_id"),
+                        "team_name": tname,
+                        "team_icon": team_icon_map.get(tname, ""),
+                        "player_name": pname,
+                        "player_icon": player_icon_map.get(pname, ""),
+                        "hero_id": p.get("hero_id"),
+                        "hero_name": p.get("hero_name"),
+                        "hero_icon": p.get("hero_icon"),
+                        "camp": p.get("camp"),
+                        "position_desc": p.get("position_name"),
+                        "kill_num": kill,
+                        "death_num": death,
+                        "assist_num": assist,
+                        "kda": (kill + assist) / death if death else float(kill + assist),
+                        "gold": p.get("gold"),
+                        "participation_rate": p.get("participation_rate"),
+                        "hurt_to_hero_total_rate": p.get("hurt_to_hero_total_rate"),
+                        "be_hurt_by_hero_total_rate": p.get("be_hurt_by_hero_total_rate"),
+                        "mvp_score": p.get("mvp_score"),
+                        "is_mvp": int(p.get("is_mvp") or 0),
+                        "is_lose_mvp": int(p.get("is_lose_mvp") or 0),
+                    }
+                )
+
             for event in detect_events(snapshots):
                 event_rows.append(
                     {
@@ -164,6 +226,10 @@ def build():
     save_table(pd.DataFrame(battle_rows), "battles")
     save_table(pd.DataFrame(team_rows), "teams")
     save_table(pd.DataFrame(event_rows), "events")
+    if player_rows:
+        pl_path = PROCESSED_DIR / "players.csv"
+        pd.DataFrame(player_rows).to_csv(pl_path, index=False, encoding="utf-8-sig")
+        print(f"players: {len(player_rows)} rows -> {pl_path}")
 
 
 if __name__ == "__main__":

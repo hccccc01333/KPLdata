@@ -3235,6 +3235,305 @@ def build_season_honors() -> dict[str, Any]:
     }
 
 
+# ---------------- P12 · 单局阶段切片与归因卡 ----------------
+
+_PHASES: list[tuple[str, str, float, float]] = [
+    ("early", "早期 (≤8′)", 0.0, 8.0),
+    ("mid", "中期 (9–15′)", 8.0, 15.0),
+    ("late", "后期 (16′+)", 15.0, 1e9),
+]
+_P12_MIN_SWING = 0.05
+
+
+def _snapshot_objectives(s: dict[str, Any], camp: int) -> int:
+    return sum(int(s.get(f"camp{camp}_{key}", 0) or 0) for key in ("tyrant", "dark_tyrant", "lord", "storm"))
+
+
+def build_phase_attribution(battle_id: str) -> dict[str, Any]:
+    """P12 · 单局阶段切片 + 归因卡（描述性 / 叙事因子分层，措辞合规）。
+
+    阶段切片：≤8′ / 9–15′ / 16′+ 三段，各段期末差值与段内变化（官方字段差分）。
+    归因卡：胜率摆动 / 资源转折 / 分路失衡（标签「描述性」，措辞用「伴随」，禁因果断言）。
+    叙事因子：V11 FeatureBuilder.explain（标签「叙事因子（非权重）」，禁止按模型权重引用）。
+    """
+    battle_id = str(battle_id or "").strip()
+    battle_dir = RAW_DIR / battle_id
+    snaps = load_battle_jsons(battle_dir) if battle_dir.exists() else []
+    if not snaps:
+        return {"state": "empty", "message": "该对局没有本地快照"}
+    snaps = sorted(snaps, key=lambda s: float(s.get("minute", 0) or 0))
+    win_camp = 0
+    for s in reversed(snaps):
+        if int(s.get("win_camp", 0) or 0) in (1, 2):
+            win_camp = int(s["win_camp"])
+            break
+
+    rows = [
+        {
+            "minute": float(s.get("minute", 0) or 0),
+            "gd": float(s.get("camp1_gold", 0) or 0) - float(s.get("camp2_gold", 0) or 0),
+            "kd": float(s.get("camp1_kill", 0) or 0) - float(s.get("camp2_kill", 0) or 0),
+            "td": float(s.get("camp1_tower", 0) or 0) - float(s.get("camp2_tower", 0) or 0),
+            "rd": float(_snapshot_objectives(s, 1) - _snapshot_objectives(s, 2)),
+        }
+        for s in snaps
+    ]
+    df = pd.DataFrame(rows)
+    tl = _replay_v11_timeline(battle_id)
+    if not tl.empty:
+        tl = tl.copy()
+        tl["minute_num"] = pd.to_numeric(tl["minute"], errors="coerce")
+        tl["camp1_win_prob"] = pd.to_numeric(tl["camp1_win_prob"], errors="coerce")
+
+    phases: list[dict[str, Any]] = []
+    prev_end = {"gd": 0.0, "kd": 0.0, "td": 0.0, "rd": 0.0}
+    for code, label, lo, hi in _PHASES:
+        sub = df[(df["minute"] > lo) & (df["minute"] <= hi)] if lo > 0 else df[df["minute"] <= hi]
+        if sub.empty:
+            continue
+        last = sub.iloc[-1]
+        prob_mean = None
+        if not tl.empty:
+            m2 = tl[(tl["minute_num"] > lo) & (tl["minute_num"] <= hi)]
+            if not m2.empty and m2["camp1_win_prob"].notna().any():
+                prob_mean = float(m2["camp1_win_prob"].mean())
+        phases.append({
+            "code": code,
+            "label": label,
+            "last_minute": float(last["minute"]),
+            "n": int(len(sub)),
+            "end": {k: float(last[k]) for k in ("gd", "kd", "td", "rd")},
+            "delta": {k: float(last[k]) - prev_end[k] for k in ("gd", "kd", "td", "rd")},
+            "prob_mean": prob_mean,
+        })
+        for k in ("gd", "kd", "td", "rd"):
+            prev_end[k] = float(last[k])
+
+    events = detect_events(snaps)
+    cards: list[dict[str, Any]] = []
+
+    if not tl.empty and tl["camp1_win_prob"].notna().sum() >= 2:
+        probs = tl["camp1_win_prob"].ffill().bfill()
+        diffs = probs.diff().abs()
+        if diffs.notna().any():
+            idx = int(diffs.idxmax())
+            minute = float(tl["minute_num"].iloc[idx])
+            direction = "蓝方" if float(probs.iloc[idx]) >= float(probs.iloc[idx - 1]) else "红方"
+            near = [e for e in events if abs(float(e.get("minute", 0) or 0) - minute) <= 1.5]
+            cards.append({
+                "title": "胜率摆动拐点",
+                "value": f"{float(diffs.iloc[idx]):.0%}",
+                "headline": f"第 {minute:.0f}′ · {direction}走强（{float(probs.iloc[idx - 1]):.0%} → {float(probs.iloc[idx]):.0%}，估算·V11）",
+                "note": "伴随事件：" + ("、".join(str(e.get("label")) for e in near[:3]) if near else "无（快照间隔内）"),
+                "source": "估算",
+            })
+
+    if len(df) >= 2:
+        drd = df["rd"].diff().abs()
+        if drd.notna().any():
+            j = int(drd.idxmax())
+            minute = float(df["minute"].iloc[j])
+            before, after = float(df["rd"].iloc[j - 1]), float(df["rd"].iloc[j])
+            near = [
+                e for e in events
+                if abs(float(e.get("minute", 0) or 0) - minute) <= 1.5
+                and str(e.get("type")) in ("tyrant", "dark_tyrant", "lord", "storm", "big_dragon")
+            ]
+            cards.append({
+                "title": "资源转折",
+                "value": f"{after - before:+.0f}",
+                "headline": f"第 {minute:.0f}′ 资源差 {before:+.0f} → {after:+.0f}（蓝方为正）",
+                "note": "伴随事件：" + ("、".join(str(e.get("label")) for e in near[:3]) if near else "—"),
+                "source": "官方",
+            })
+
+    players = (load_battle_players(battle_id).get("players") or [])
+    if players:
+        by_pos: dict[str, dict[int, float]] = {}
+        for p in players:
+            by_pos.setdefault(str(p.get("position_name") or "—"), {})[int(p.get("camp") or 0)] = float(p.get("gold") or 0)
+        pairs = [(pos, d[1] - d[2]) for pos, d in by_pos.items() if 1 in d and 2 in d]
+        if pairs:
+            pos, diff = max(pairs, key=lambda x: abs(x[1]))
+            cards.append({
+                "title": "分路失衡（终局）",
+                "value": f"{diff:+,.0f}",
+                "headline": f"{pos} 经济差最大（蓝方 − 红方）",
+                "note": "描述性·伴随现象；未做因果识别，不作追责口径",
+                "source": "官方",
+            })
+
+    factors: list[dict[str, Any]] = []
+    artifact = load_model()
+    if artifact is not None and len(snaps) >= 2:
+        try:
+            _prob, _feats, explain = predict_probability(artifact, snaps[-1], snaps[:-1])
+            factors = [
+                {
+                    "factor": str(e.get("factor") or ""),
+                    "leader": str(e.get("leader") or ""),
+                    "value": float(e.get("value") or 0),
+                    "description": str(e.get("description") or ""),
+                }
+                for e in (explain or [])[:5]
+            ]
+        except Exception:
+            factors = []
+
+    return {
+        "state": "ok",
+        "battle_id": battle_id,
+        "win_camp": win_camp,
+        "phases": phases,
+        "cards": cards,
+        "factors": factors,
+        "note": "阶段切片为官方字段差分（描述性）；叙事因子来自 FeatureBuilder.explain，禁止按模型权重引用（非 SHAP）",
+    }
+
+
+# ---------------- P11 · 英雄池与同位置对位 ----------------
+
+HERO_POOL_STALE_GAMES = 10
+MATCHUP_MIN_N = 8
+
+
+def build_hero_pool(name: str, kind: str = "team") -> dict[str, Any]:
+    """P11 · 英雄池：按战队/选手聚合英雄出场、胜率±CI（Wilson）、广度与生疏标记。
+
+    广度：池大小（不重复英雄数）、HHI（份额平方和）、有效英雄数 exp(Shannon)。
+    生疏：过去 ≥``HERO_POOL_STALE_GAMES`` 局未再选出即标记。
+    胜率仅统计已完赛（winner 已知）的对局。
+    """
+    players = _players_source_table()
+    if players.empty:
+        return {"state": "empty", "message": "players.csv 为空，请先运行历史数据集构建"}
+    battles = load_analysis_table("battles")
+    win_map: dict[str, str] = {}
+    if not battles.empty and "winner" in battles.columns:
+        for _, r in battles.iterrows():
+            w = str(r.get("winner") or "").strip()
+            if w:
+                win_map[str(r.get("battle_id"))] = w
+
+    p = players.copy()
+    if str(kind) == "player":
+        p = p[p["player_name"].astype(str) == str(name)]
+    else:
+        p = p[p["team_name"].astype(str) == str(name)]
+    if p.empty:
+        return {"state": "empty", "message": f"未找到 {name} 的出场记录"}
+    p = p.copy()
+    p["_win"] = [
+        1 if win_map.get(str(b)) == str(t) else (0 if str(b) in win_map else None)
+        for b, t in zip(p["battle_id"], p["team_name"])
+    ]
+    p["_ts"] = [
+        int(str(b).rsplit("_", 1)[-1]) if str(b).rsplit("_", 1)[-1].isdigit() else 0
+        for b in p["battle_id"]
+    ]
+    ts_sorted = sorted(set(int(t) for t in p["_ts"]))
+
+    rows: list[dict[str, Any]] = []
+    for hero, g in p.groupby("hero_name"):
+        decided = g[g["_win"].notna()]
+        n = int(len(decided))
+        wins = int(decided["_win"].sum()) if n else 0
+        wr = wins / n if n else None
+        lo = hi = None
+        if n:
+            lo, hi = wilson_ci(wins, n)
+        last_ts = int(g["_ts"].max())
+        stale_games = int(sum(1 for t in ts_sorted if t > last_ts))
+        rows.append({
+            "hero": str(hero),
+            "games": int(len(g)),
+            "decided_n": n,
+            "wins": wins,
+            "wr": wr,
+            "ci_low": lo,
+            "ci_high": hi,
+            "stale_games": stale_games,
+            "stale": bool(stale_games >= HERO_POOL_STALE_GAMES),
+        })
+    rows.sort(key=lambda r: (-r["games"], -(r["wr"] or 0), r["hero"]))
+    total_games = len(ts_sorted)
+    shares = [r["games"] / sum(x["games"] for x in rows) for r in rows] if rows else []
+    hhi = float(sum(s * s for s in shares))
+    eff = float(np.exp(-sum(s * np.log(s) for s in shares if s > 0))) if shares else 0.0
+    return {
+        "state": "ok",
+        "name": str(name),
+        "kind": str(kind),
+        "total_games": total_games,
+        "breadth": {"pool_size": len(rows), "hhi": round(hhi, 3), "effective": round(eff, 1)},
+        "stale_threshold": HERO_POOL_STALE_GAMES,
+        "rows": rows[:40],
+    }
+
+
+def build_hero_matchups(position: str, min_n: int = 4) -> dict[str, Any]:
+    """P11 · 同位置对位：同局、同位置、不同战队的英雄（蓝方 vs 红方）历史胜率（Wilson CI）。
+
+    方向定义：蓝方英雄 A 所在阵营的胜场比例；仅统计已完赛对局。
+    n < ``MATCHUP_MIN_N`` 的对位标「不足」；文案用「历史对位关联」，不作机制克制断言。
+    """
+    players = _players_source_table()
+    if players.empty or "camp" not in players.columns:
+        return {"state": "empty", "message": "players.csv 为空"}
+    battles = load_analysis_table("battles")
+    win_map: dict[str, str] = {}
+    if not battles.empty and "winner" in battles.columns:
+        for _, r in battles.iterrows():
+            w = str(r.get("winner") or "").strip()
+            if w:
+                win_map[str(r.get("battle_id"))] = w
+
+    sub = players[players["position_desc"].astype(str) == str(position)]
+    pairs: dict[tuple[str, str], list[int]] = {}
+    for bid, g in sub.groupby("battle_id"):
+        winner = win_map.get(str(bid), "")
+        if not winner:
+            continue
+        c1 = g[g["camp"] == 1]
+        c2 = g[g["camp"] == 2]
+        if len(c1) != 1 or len(c2) != 1:
+            continue
+        r1, r2 = c1.iloc[0], c2.iloc[0]
+        t1, t2 = str(r1["team_name"]), str(r2["team_name"])
+        if t1 == t2:  # 验收：对位 join 不出现同队两人
+            continue
+        hero_a, hero_b = str(r1["hero_name"]), str(r2["hero_name"])
+        if hero_a == hero_b:
+            continue
+        pairs.setdefault((hero_a, hero_b), []).append(1 if winner == t1 else 0)
+
+    rows = []
+    for (a, b), arr in pairs.items():
+        n = len(arr)
+        wins = sum(arr)
+        lo, hi = wilson_ci(wins, n)
+        rows.append({
+            "hero_blue": a,
+            "hero_red": b,
+            "n": n,
+            "wins": wins,
+            "wr": wins / n,
+            "ci_low": lo,
+            "ci_high": hi,
+            "insufficient": n < MATCHUP_MIN_N,
+        })
+    rows.sort(key=lambda r: (-r["n"], -r["wr"], r["hero_blue"]))
+    qualified = [r for r in rows if r["n"] >= int(min_n)]
+    return {
+        "state": "ok",
+        "position": str(position),
+        "min_n": int(min_n),
+        "insufficient_threshold": MATCHUP_MIN_N,
+        "total_pairs": len(rows),
+        "rows": qualified[:40],
+    }
+
+
 def detect_events(snapshots: list[dict[str, Any]]) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     for i in range(1, len(snapshots)):
