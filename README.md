@@ -177,11 +177,6 @@ Dashboard 默认：`http://localhost:8501`
 | **V2** | 2026-05 | BP 后赛前特征增强 |
 | **V1** | 2026-05 | 赛后/赛前基线建模与接口探索 |
 
-## 许可
-
-- 代码：[MIT License](LICENSE)
-- 数据：来自腾讯 KPL 公开赛事接口，仅用于个人学习研究，不做商业用途（详见 `data/README.md`）
-
 ## 致谢
 
 数据来源：腾讯 KPL 公开赛事接口（`prod.comp.smoba.qq.com`）
