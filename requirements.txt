@@ -1,25 +1,17 @@
+# KPL 实时胜率预测系统 · 运行依赖
+# 开发 / 验证环境：Python 3.14；以下为代码实际使用的依赖（已按 import 实测核对）
+
 # ===== 核心数据栈 =====
 pandas>=2.0
 numpy>=1.24
 requests>=2.31
 
-# ===== 可视化 =====
-matplotlib>=3.7
-seaborn>=0.12
-plotly>=5.17
-
-# ===== 机器学习 =====
+# ===== 建模 =====
 scikit-learn>=1.3
-xgboost>=2.0
-shap>=0.44              # 模型可解释性
 
-# ===== Notebook =====
-jupyter>=1.0
-ipykernel>=6.25
+# ===== 可视化 / Dashboard =====
+plotly>=5.17
+streamlit>=1.50          # 使用新版 width="stretch" API，低版本会报错
 
-# ===== Dashboard（V2 阶段才需要）=====
-streamlit>=1.28
-
-# ===== 工具 =====
-tqdm>=4.66              # 爬虫进度条
-python-dotenv>=1.0      # 环境变量管理（可选）
+# 可选：pyarrow（parquet 导出；缺失时 build_history_dataset 自动降级为仅 CSV）
+# pyarrow>=14.0
