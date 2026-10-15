@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import ast
 import json
+import math
 import time
-from collections import Counter, deque
+from collections import Counter, defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -35,6 +36,7 @@ QUARANTINE_DIR = DATASETS_DIR / "quarantine"
 MONITOR_STATUS_FILE = REALTIME_DIR / "monitor_status.json"
 SCHEDULE_ARCHIVE_PATH = REALTIME_DIR / "schedule_archive.csv"
 KPL_KNOWLEDGE_PATH = PROJECT_ROOT / "docs" / "kpl_knowledge.json"
+RAW_FALLBACK_DIR = PROJECT_ROOT / "data" / "raw"
 
 BASE_URL_BATTLE = "https://prod.comp.smoba.qq.com/leaguesite/battle/open"
 BASE_URL_LEAGUES = "https://prod.comp.smoba.qq.com/leaguesite/leagues/open"
@@ -57,9 +59,30 @@ POSITION_CN = {
     "top": "对抗路",
     "adc": "发育路",
 }
+# battle_player_list 对位矩阵行序：对抗 / 打野 / 中路 / 发育 / 游走
+PLAYER_LANE_ORDER = [6, 5, 2, 7, 4]
+PLAYER_EQUIP_SLOTS = 6
+RUNE_DICT_PATH = PROJECT_ROOT / "data" / "meta" / "rune_dict.json"
+
+# bp_list.position（与 battle_player_list.position 编码不同）
+BP_POSITION_CN = {
+    0: "对抗路",
+    1: "打野",
+    2: "中路",
+    3: "发育路",
+    4: "游走",
+}
+BP_LANE_ORDER = [0, 1, 2, 3, 4]
+BP_EXPECTED_STEPS = 20
+BP_SMALL_SAMPLE_N = 20
+# 终局常见结构：一 ban×4 → 一 pick×6 → 二 ban×6 → 二 pick×4
+BP_PHASE_THRESHOLDS = ((4, "一 ban"), (10, "一 pick"), (16, "二 ban"), (20, "二 pick"))
 
 STATUS_MAP = {0: "未开始", 1: "进行中", 2: "已结束"}
+# Probe filter: keep replicas within this window of last accepted game_duration.
 MONOTONIC_TOLERANCE_SEC = 30
+# Accept filter: only tiny clock jitter; larger rewinds are stale API replicas.
+REWIND_ACCEPT_TOLERANCE_SEC = 3
 
 
 def api_get(url: str, params: dict[str, Any] | None = None, timeout: int = 12) -> dict[str, Any] | None:
@@ -505,9 +528,13 @@ def fetch_freshest_battle(
 def is_monotonic_snapshot(
     snap: dict[str, Any],
     history: list[dict[str, Any]] | None,
-    tolerance_sec: int = MONOTONIC_TOLERANCE_SEC,
+    tolerance_sec: int = REWIND_ACCEPT_TOLERANCE_SEC,
 ) -> bool:
-    """Reject API replicas that roll game_duration far backward (stale snapshot)."""
+    """Reject API replicas that roll game_duration backward beyond tiny jitter.
+
+    Probe selection still uses MONOTONIC_TOLERANCE_SEC; acceptance is stricter so
+    ~20–30s stale replicas (e.g. 60s after 84s) cannot overwrite predictions.
+    """
     if int(snap.get("status", 0) or 0) == 2:
         return True
     if not history:
@@ -646,14 +673,14 @@ def prediction_confidence(minute: float | int, prob: float, artifact: dict[str, 
 def adaptive_poll_interval(
     gold_diff_velocity: float,
     *,
-    interval_calm: int = 10,
-    interval_hot: int = 4,
+    interval_calm: int = 3,
+    interval_hot: int = 2,
     hot_velocity_threshold: float = 150.0,
-) -> int:
+) -> float:
     """Shorter polling during high-tempo moments (team fights / swings)."""
     if abs(gold_diff_velocity) >= hot_velocity_threshold:
-        return max(3, interval_hot)
-    return max(3, interval_calm)
+        return max(0.05, float(interval_hot))
+    return max(0.05, float(interval_calm))
 
 
 PREDICTION_CSV_FIELDS = [
@@ -673,6 +700,7 @@ PREDICTION_CSV_FIELDS = [
     "objective_value_score",
     "tempo_swing_score",
     "top_factor",
+    "gold_guard_applied",
     "status",
     "win_camp",
 ]
@@ -736,6 +764,802 @@ def parse_snapshot(raw_data: dict[str, Any], battle_id: str = "") -> dict[str, A
         snap[f"c1_level_{pos_name}"] = max([p.get("level", 0) or 0 for p in c1_p], default=0)
         snap[f"c2_level_{pos_name}"] = max([p.get("level", 0) or 0 for p in c2_p], default=0)
     return snap
+
+
+def wilson_ci(successes: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion (default 95%)."""
+    if n <= 0:
+        return (0.0, 0.0)
+    successes = max(0, min(int(successes), int(n)))
+    n = int(n)
+    p = successes / n
+    z2 = z * z
+    denom = 1.0 + z2 / n
+    centre = p + z2 / (2.0 * n)
+    margin = z * math.sqrt((p * (1.0 - p) + z2 / (4.0 * n)) / n)
+    lo = max(0.0, (centre - margin) / denom)
+    hi = min(1.0, (centre + margin) / denom)
+    return (lo, hi)
+
+
+def filter_teams_window(teams: pd.DataFrame, mode: str = "all") -> pd.DataFrame:
+    """Slice team-battle rows by window: ``all`` | ``last_7d`` (by ``date``)."""
+    if teams is None or teams.empty:
+        return pd.DataFrame() if teams is None else teams.copy()
+    out = teams.copy()
+    key = str(mode or "all").strip().lower()
+    if key in {"all", "全部", ""}:
+        return out
+    if key not in {"last_7d", "7d", "近7天", "近 7 天"}:
+        return out
+    if "date" not in out.columns:
+        return out.iloc[0:0].copy()
+    dates = pd.to_datetime(out["date"], errors="coerce")
+    cutoff = pd.Timestamp(datetime.now().date()) - pd.Timedelta(days=6)
+    return out.loc[dates.notna() & (dates >= cutoff)].copy()
+
+
+def build_proxy_standings(teams_df: pd.DataFrame) -> pd.DataFrame:
+    """Proxy standings: wins → win_rate → avg_gold_diff; includes Wilson CI.
+
+    Not official league points — rank is estimated from window battle rows.
+    """
+    cols = [
+        "rank",
+        "team",
+        "wins",
+        "losses",
+        "games",
+        "win_rate",
+        "wilson_lo",
+        "wilson_hi",
+        "avg_gold_diff",
+        "avg_kill_diff",
+        "avg_tower_diff",
+        "net_gold",
+    ]
+    if teams_df is None or teams_df.empty or "team" not in teams_df.columns:
+        return pd.DataFrame(columns=cols)
+
+    df = teams_df.copy()
+    df["win"] = pd.to_numeric(df.get("win", 0), errors="coerce").fillna(0).astype(int)
+    for col in ("gold_diff", "kill_diff", "tower_diff"):
+        if col not in df.columns:
+            df[col] = 0.0
+        else:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+
+    g = (
+        df.groupby("team", as_index=False)
+        .agg(
+            games=("win", "count"),
+            wins=("win", "sum"),
+            avg_gold_diff=("gold_diff", "mean"),
+            avg_kill_diff=("kill_diff", "mean"),
+            avg_tower_diff=("tower_diff", "mean"),
+            net_gold=("gold_diff", "sum"),
+        )
+    )
+    g["losses"] = (g["games"] - g["wins"]).astype(int)
+    g["wins"] = g["wins"].astype(int)
+    g["games"] = g["games"].astype(int)
+    g["win_rate"] = np.where(g["games"] > 0, g["wins"] / g["games"], 0.0)
+
+    lo_hi = [wilson_ci(int(w), int(n)) for w, n in zip(g["wins"], g["games"])]
+    g["wilson_lo"] = [x[0] for x in lo_hi]
+    g["wilson_hi"] = [x[1] for x in lo_hi]
+
+    g = g.sort_values(
+        ["wins", "win_rate", "avg_gold_diff"],
+        ascending=[False, False, False],
+        kind="mergesort",
+    ).reset_index(drop=True)
+    g.insert(0, "rank", np.arange(1, len(g) + 1))
+    return g[cols]
+
+
+def team_style_radar(df: pd.DataFrame) -> dict[str, float]:
+    """Five-axis style radar (0–1), same normalization as the legacy dashboard page."""
+    empty = {"胜率": 0.0, "经济": 0.0, "团战": 0.0, "推进": 0.0, "资源": 0.0}
+    if df is None or df.empty:
+        return empty
+    win = float(pd.to_numeric(df.get("win", 0), errors="coerce").fillna(0).mean())
+    gold = float(pd.to_numeric(df.get("gold_diff", 0), errors="coerce").fillna(0).mean())
+    kill = float(pd.to_numeric(df.get("kill_diff", 0), errors="coerce").fillna(0).mean())
+    tower = float(pd.to_numeric(df.get("tower_diff", 0), errors="coerce").fillna(0).mean())
+    if "objectives" in df.columns:
+        obj = float(pd.to_numeric(df["objectives"], errors="coerce").fillna(0).mean())
+    else:
+        obj = 0.0
+    return {
+        "胜率": win,
+        "经济": float(np.clip((gold + 8000) / 16000, 0, 1)),
+        "团战": float(np.clip((kill + 10) / 20, 0, 1)),
+        "推进": float(np.clip((tower + 6) / 12, 0, 1)),
+        "资源": float(np.clip(obj / 6, 0, 1)),
+    }
+
+
+def _bp_phase_for_step(step: int, action: str) -> str:
+    for upper, name in BP_PHASE_THRESHOLDS:
+        if step < upper:
+            return name
+    return f"其他 {action}"
+
+
+def _extract_battle_payload(raw_or_snap: Any) -> dict[str, Any]:
+    """Normalize API envelope / data dict / snapshot-like dict to battle payload."""
+    if raw_or_snap is None:
+        return {}
+    if isinstance(raw_or_snap, list):
+        return {"bp_list": raw_or_snap}
+    if not isinstance(raw_or_snap, dict):
+        return {}
+    if isinstance(raw_or_snap.get("data"), dict) and (
+        "bp_list" in raw_or_snap["data"] or "camp1" in raw_or_snap["data"] or "battle_id" in raw_or_snap["data"]
+    ):
+        return raw_or_snap["data"]
+    return raw_or_snap
+
+
+def parse_bp_list(raw_or_snap: Any) -> list[dict[str, Any]]:
+    """Parse official ``bp_list`` into normalized timeline steps.
+
+    Each step: step, phase, action (ban|pick), camp, hero_id, hero_name, hero_icon,
+    position, position_name, incomplete.
+    When step count != 20, existing steps are returned with ``incomplete=True``.
+    Does **not** feed V11 ``predict_probability`` features.
+    """
+    payload = _extract_battle_payload(raw_or_snap)
+    bp_raw = payload.get("bp_list")
+    if not isinstance(bp_raw, list) or not bp_raw:
+        return []
+
+    incomplete = len(bp_raw) != BP_EXPECTED_STEPS
+    steps: list[dict[str, Any]] = []
+    for idx, item in enumerate(bp_raw):
+        if not isinstance(item, dict):
+            continue
+        is_pick = int(item.get("is_ban_or_pick", 0) or 0) == 1
+        action = "pick" if is_pick else "ban"
+        camp = int(item.get("camp", 0) or 0)
+        position = int(item.get("position", 0) or 0)
+        steps.append(
+            {
+                "step": idx,
+                "phase": _bp_phase_for_step(idx, action),
+                "action": action,
+                "camp": camp,
+                "camp_name": "蓝" if camp == 1 else "红" if camp == 2 else str(camp),
+                "hero_id": item.get("hero_id"),
+                "hero_name": str(item.get("hero_name") or "").strip(),
+                "hero_icon": item.get("hero_icon") or "",
+                "position": position,
+                "position_name": BP_POSITION_CN.get(position, f"位{position}"),
+                "incomplete": incomplete,
+            }
+        )
+    return steps
+
+
+def _read_json_file(path: Path) -> dict[str, Any] | None:
+    for encoding in ("utf-8-sig", "utf-8"):
+        try:
+            return json.loads(path.read_text(encoding=encoding))
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+            continue
+    return None
+
+
+def load_battle_final_payload(battle_id: str) -> tuple[dict[str, Any] | None, str]:
+    """Load final-frame battle payload containing ``bp_list``.
+
+    Prefers the latest snapshot under ``RAW_DIR/{battle_id}`` that has ``bp_list``;
+    falls back to ``data/raw/{battle_id}.json``.
+    Returns (payload, source_label).
+    """
+    battle_id = str(battle_id or "").strip()
+    if not battle_id:
+        return None, ""
+
+    battle_dir = RAW_DIR / battle_id
+    if battle_dir.is_dir():
+        files = sorted(battle_dir.glob("*.json"))
+        for path in reversed(files):
+            payload = _read_json_file(path)
+            if not payload:
+                continue
+            data = _extract_battle_payload(payload)
+            bp = data.get("bp_list")
+            if isinstance(bp, list) and bp:
+                return data, f"raw_snapshots/{battle_id}/{path.name}"
+
+    fallback = RAW_FALLBACK_DIR / f"{battle_id}.json"
+    if fallback.is_file():
+        payload = _read_json_file(fallback)
+        if payload:
+            data = _extract_battle_payload(payload)
+            bp = data.get("bp_list")
+            if isinstance(bp, list) and bp:
+                return data, f"raw/{battle_id}.json"
+
+    return None, ""
+
+
+def load_battle_bp(battle_id: str) -> dict[str, Any]:
+    """Load and parse BP for one battle (final snapshot or raw fallback)."""
+    payload, source = load_battle_final_payload(battle_id)
+    if not payload:
+        return {
+            "battle_id": str(battle_id),
+            "steps": [],
+            "incomplete": True,
+            "source": "",
+            "camp1_team": "",
+            "camp2_team": "",
+            "win_camp": 0,
+            "picks_by_camp": {1: [], 2: []},
+            "bans_by_camp": {1: [], 2: []},
+        }
+
+    steps = parse_bp_list(payload)
+    incomplete = (not steps) or any(s.get("incomplete") for s in steps) or len(steps) != BP_EXPECTED_STEPS
+    c1 = payload.get("camp1", {}) or {}
+    c2 = payload.get("camp2", {}) or {}
+    picks_by_camp: dict[int, list[dict[str, Any]]] = {1: [], 2: []}
+    bans_by_camp: dict[int, list[dict[str, Any]]] = {1: [], 2: []}
+    for step in steps:
+        camp = int(step.get("camp", 0) or 0)
+        if camp not in (1, 2):
+            continue
+        if step.get("action") == "pick":
+            picks_by_camp[camp].append(step)
+        else:
+            bans_by_camp[camp].append(step)
+
+    return {
+        "battle_id": str(payload.get("battle_id") or battle_id),
+        "steps": steps,
+        "incomplete": incomplete,
+        "source": source,
+        "camp1_team": c1.get("team_name") or c1.get("team_abbreviation") or "Camp1",
+        "camp2_team": c2.get("team_name") or c2.get("team_abbreviation") or "Camp2",
+        "win_camp": int(payload.get("win_camp", 0) or 0),
+        "picks_by_camp": picks_by_camp,
+        "bans_by_camp": bans_by_camp,
+    }
+
+
+def load_rune_dict(path: Path = RUNE_DICT_PATH) -> dict[str, str]:
+    """Load optional rune id→name map. Missing / empty file → {} (all 待映射)."""
+    if not path.is_file():
+        return {}
+    payload = _read_json_file(path)
+    if not isinstance(payload, dict):
+        return {}
+    out: dict[str, str] = {}
+    for key, value in payload.items():
+        kid = str(key).strip()
+        name = str(value).strip() if value is not None else ""
+        if kid and name:
+            out[kid] = name
+    return out
+
+
+def parse_symbol_ids(
+    raw: Any,
+    rune_dict: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
+    """Split ``symbol_ids`` (``id+id+…``) and optionally map via ``rune_dict``.
+
+    Without a dict hit: ``name='待映射'``, ``mapped=False``.
+    Does **not** feed V11 ``predict_probability``.
+    """
+    text = str(raw or "").strip()
+    if not text:
+        return []
+    mapping = rune_dict if rune_dict is not None else load_rune_dict()
+    items: list[dict[str, Any]] = []
+    for part in text.split("+"):
+        rid = str(part).strip()
+        if not rid:
+            continue
+        name = mapping.get(rid, "")
+        mapped = bool(name)
+        items.append(
+            {
+                "id": rid,
+                "name": name if mapped else "待映射",
+                "mapped": mapped,
+            }
+        )
+    return items
+
+
+def _parse_equip_slots(raw_list: Any) -> list[dict[str, Any]]:
+    """Normalize BriefEquipList to exactly PLAYER_EQUIP_SLOTS slots (official names/icons)."""
+    slots: list[dict[str, Any]] = []
+    if isinstance(raw_list, list):
+        for item in raw_list[:PLAYER_EQUIP_SLOTS]:
+            if not isinstance(item, dict):
+                continue
+            equip_id = item.get("equip_id")
+            name = str(item.get("equip_name") or "").strip()
+            icon = str(item.get("equip_icon") or "").strip()
+            empty = equip_id in (None, "", 0) and not name
+            slots.append(
+                {
+                    "equip_id": equip_id,
+                    "equip_name": name,
+                    "equip_icon": icon,
+                    "empty": empty,
+                    "source": "官方",
+                }
+            )
+    while len(slots) < PLAYER_EQUIP_SLOTS:
+        slots.append(
+            {
+                "equip_id": None,
+                "equip_name": "",
+                "equip_icon": "",
+                "empty": True,
+                "source": "官方",
+            }
+        )
+    return slots
+
+
+def parse_battle_players(
+    payload: Any,
+    rune_dict: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
+    """Normalize ``battle_player_list`` into UI-ready player dicts.
+
+    Each player: camp/position/KDA/gold/rates/equip_list/symbol_id_list/mvp flags.
+    Equipment uses official ``equip_name`` / ``equip_icon`` (no local equip dict).
+    Does **not** feed V11 ``predict_probability``.
+    """
+    data = _extract_battle_payload(payload)
+    raw_players = data.get("battle_player_list")
+    if not isinstance(raw_players, list) or not raw_players:
+        return []
+
+    mapping = rune_dict if rune_dict is not None else load_rune_dict()
+    players: list[dict[str, Any]] = []
+    for raw in raw_players:
+        if not isinstance(raw, dict):
+            continue
+        camp = int(raw.get("camp", 0) or 0)
+        position = int(raw.get("position", 0) or 0)
+        pos_key = POSITIONS.get(position, "")
+        pos_desc = str(raw.get("position_desc") or "").strip() or POSITION_CN.get(pos_key, f"位{position}")
+        kills = int(raw.get("kill_num", 0) or 0)
+        deaths = int(raw.get("death_num", 0) or 0)
+        assists = int(raw.get("assist_num", 0) or 0)
+        gold = int(raw.get("gold", 0) or 0)
+        hurt = float(raw.get("hurt_to_hero_total", 0) or 0)
+        be_hurt = float(raw.get("be_hurt_by_hero_total", 0) or 0)
+        hurt_rate = float(raw.get("hurt_to_hero_total_rate", 0) or 0)
+        be_hurt_rate = float(raw.get("be_hurt_by_hero_total_rate", 0) or 0)
+        participation = float(raw.get("participation_rate", 0) or 0)
+        level_raw = raw.get("level")
+        try:
+            level = int(level_raw) if level_raw not in (None, "") else None
+        except (TypeError, ValueError):
+            level = None
+        symbol_raw = str(raw.get("symbol_ids") or "").strip()
+        symbol_list = parse_symbol_ids(symbol_raw, mapping)
+        equips = _parse_equip_slots(raw.get("BriefEquipList"))
+        player_name = str(raw.get("player_name") or raw.get("actual_player_name") or "").strip()
+        hero_name = str(raw.get("hero_name") or "").strip()
+        is_mvp = int(raw.get("is_mvp", 0) or 0) == 1
+        is_lose_mvp = int(raw.get("is_lose_mvp", 0) or 0) == 1
+        gold_eff = (hurt / gold) if gold > 0 else 0.0
+        be_hurt_eff = (be_hurt / gold) if gold > 0 else 0.0
+        players.append(
+            {
+                "player_name": player_name,
+                "hero_name": hero_name,
+                "hero_id": raw.get("hero_id"),
+                "hero_icon": raw.get("hero_icon") or "",
+                "camp": camp,
+                "camp_name": "蓝" if camp == 1 else "红" if camp == 2 else str(camp),
+                "position": position,
+                "position_key": pos_key,
+                "position_name": pos_desc,
+                "kill_num": kills,
+                "death_num": deaths,
+                "assist_num": assists,
+                "kda_text": f"{kills}/{deaths}/{assists}",
+                "gold": gold,
+                "level": level,
+                "participation_rate": participation,
+                "hurt_to_hero_total": hurt,
+                "be_hurt_by_hero_total": be_hurt,
+                "hurt_to_hero_total_rate": hurt_rate,
+                "be_hurt_by_hero_total_rate": be_hurt_rate,
+                "hurt_per_gold": gold_eff,
+                "be_hurt_per_gold": be_hurt_eff,
+                "is_mvp": is_mvp,
+                "is_lose_mvp": is_lose_mvp,
+                "mvp_score": float(raw.get("mvp_score", 0) or 0),
+                "equip_list": equips,
+                "equip_ids": [e.get("equip_id") for e in equips if not e.get("empty")],
+                "equip_names": [e.get("equip_name") for e in equips if not e.get("empty")],
+                "symbol_ids_raw": symbol_raw,
+                "symbol_id_list": symbol_list,
+                "symbol_ids": [s["id"] for s in symbol_list],
+                "runes_mapped": all(s.get("mapped") for s in symbol_list) if symbol_list else False,
+                "team_name": str(raw.get("team_name") or "").strip(),
+                "team_id": raw.get("team_id"),
+                "source_stats": "官方",
+                "source_equip": "官方",
+                "source_rune": "官方" if (symbol_list and all(s.get("mapped") for s in symbol_list)) else "估算",
+            }
+        )
+    return players
+
+
+def load_battle_players_payload(battle_id: str) -> tuple[dict[str, Any] | None, str]:
+    """Load latest payload that contains ``battle_player_list``.
+
+    Prefers ``RAW_DIR/{battle_id}`` last frame with players; falls back to
+    ``data/raw/{battle_id}.json``.
+    """
+    battle_id = str(battle_id or "").strip()
+    if not battle_id:
+        return None, ""
+
+    battle_dir = RAW_DIR / battle_id
+    if battle_dir.is_dir():
+        files = sorted(battle_dir.glob("*.json"))
+        for path in reversed(files):
+            payload = _read_json_file(path)
+            if not payload:
+                continue
+            data = _extract_battle_payload(payload)
+            players = data.get("battle_player_list")
+            if isinstance(players, list) and players:
+                return data, f"raw_snapshots/{battle_id}/{path.name}"
+
+    fallback = RAW_FALLBACK_DIR / f"{battle_id}.json"
+    if fallback.is_file():
+        payload = _read_json_file(fallback)
+        if payload:
+            data = _extract_battle_payload(payload)
+            players = data.get("battle_player_list")
+            if isinstance(players, list) and players:
+                return data, f"raw/{battle_id}.json"
+
+    return None, ""
+
+
+def load_battle_players(battle_id: str) -> dict[str, Any]:
+    """Load and parse players for one battle (latest snap or raw fallback)."""
+    payload, source = load_battle_players_payload(battle_id)
+    empty = {
+        "battle_id": str(battle_id),
+        "players": [],
+        "source": "",
+        "camp1_team": "",
+        "camp2_team": "",
+        "camp1_gold": 0,
+        "camp2_gold": 0,
+        "camp1_kill": 0,
+        "camp2_kill": 0,
+        "time_sec": 0,
+        "minute": 0.0,
+        "win_camp": 0,
+        "rune_dict_loaded": False,
+    }
+    if not payload:
+        return empty
+
+    rune_dict = load_rune_dict()
+    players = parse_battle_players(payload, rune_dict)
+    c1 = payload.get("camp1", {}) or {}
+    c2 = payload.get("camp2", {}) or {}
+    time_sec = get_seconds(payload.get("game_duration"))
+    return {
+        "battle_id": str(payload.get("battle_id") or battle_id),
+        "players": players,
+        "source": source,
+        "camp1_team": c1.get("team_name") or c1.get("team_abbreviation") or "Camp1",
+        "camp2_team": c2.get("team_name") or c2.get("team_abbreviation") or "Camp2",
+        "camp1_gold": int(c1.get("gold", 0) or 0),
+        "camp2_gold": int(c2.get("gold", 0) or 0),
+        "camp1_kill": int(c1.get("kill_num", 0) or 0),
+        "camp2_kill": int(c2.get("kill_num", 0) or 0),
+        "time_sec": int(time_sec),
+        "minute": float(time_sec) / 60.0 if time_sec else 0.0,
+        "win_camp": int(payload.get("win_camp", 0) or 0),
+        "rune_dict_loaded": bool(rune_dict),
+    }
+
+
+def player_slot_key(player: dict[str, Any]) -> str:
+    """Stable identity within a battle: camp + position (+ name fallback)."""
+    camp = int(player.get("camp", 0) or 0)
+    position = int(player.get("position", 0) or 0)
+    name = str(player.get("player_name") or "").strip()
+    return f"{camp}:{position}:{name}"
+
+
+def load_player_gold_series(battle_id: str) -> dict[str, list[dict[str, Any]]]:
+    """Collect per-player gold over multi-frame snaps under RAW_DIR.
+
+    Returns ``{slot_key: [{"minute": float, "gold": int}, ...]}``.
+    Empty when fewer than 2 frames have player gold.
+    """
+    battle_id = str(battle_id or "").strip()
+    battle_dir = RAW_DIR / battle_id
+    if not battle_dir.is_dir():
+        return {}
+
+    series: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    seen_sec: set[int] = set()
+    for path in sorted(battle_dir.glob("*.json")):
+        payload = _read_json_file(path)
+        if not payload:
+            continue
+        data = _extract_battle_payload(payload)
+        status = int(data.get("status", 0) or 0)
+        if status not in (1, 2):
+            continue
+        sec = get_seconds(data.get("game_duration"))
+        if sec in seen_sec:
+            continue
+        seen_sec.add(sec)
+        raw_players = data.get("battle_player_list")
+        if not isinstance(raw_players, list):
+            continue
+        minute = float(sec) / 60.0
+        for raw in raw_players:
+            if not isinstance(raw, dict):
+                continue
+            camp = int(raw.get("camp", 0) or 0)
+            position = int(raw.get("position", 0) or 0)
+            name = str(raw.get("player_name") or raw.get("actual_player_name") or "").strip()
+            key = f"{camp}:{position}:{name}"
+            series[key].append({"minute": minute, "gold": int(raw.get("gold", 0) or 0)})
+
+    return {k: v for k, v in series.items() if len(v) >= 2}
+
+
+def players_to_wide_df(players: list[dict[str, Any]]) -> pd.DataFrame:
+    """Wide CSV-oriented table: identity + stats + equip/symbol id lists."""
+    rows: list[dict[str, Any]] = []
+    for p in players:
+        equip_ids = p.get("equip_ids") or []
+        symbol_ids = p.get("symbol_ids") or []
+        rows.append(
+            {
+                "camp": p.get("camp"),
+                "camp_name": p.get("camp_name"),
+                "position": p.get("position"),
+                "position_name": p.get("position_name"),
+                "player_name": p.get("player_name"),
+                "hero_name": p.get("hero_name"),
+                "kill_num": p.get("kill_num"),
+                "death_num": p.get("death_num"),
+                "assist_num": p.get("assist_num"),
+                "gold": p.get("gold"),
+                "level": p.get("level"),
+                "participation_rate": p.get("participation_rate"),
+                "hurt_to_hero_total_rate": p.get("hurt_to_hero_total_rate"),
+                "be_hurt_by_hero_total_rate": p.get("be_hurt_by_hero_total_rate"),
+                "hurt_per_gold": p.get("hurt_per_gold"),
+                "is_mvp": int(bool(p.get("is_mvp"))),
+                "is_lose_mvp": int(bool(p.get("is_lose_mvp"))),
+                "mvp_score": p.get("mvp_score"),
+                "equip_ids": "+".join(str(x) for x in equip_ids if x is not None),
+                "equip_names": "|".join(str(x) for x in (p.get("equip_names") or []) if x),
+                "symbol_ids": "+".join(str(x) for x in symbol_ids if x),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _core_picks(pick_steps: list[dict[str, Any]], k: int = 3) -> frozenset[str]:
+    names = [str(s.get("hero_name") or "").strip() for s in pick_steps if str(s.get("hero_name") or "").strip()]
+    return frozenset(names[:k])
+
+
+def _rate_pack(successes: int, n: int) -> dict[str, Any]:
+    rate = (successes / n) if n > 0 else 0.0
+    lo, hi = wilson_ci(successes, n)
+    return {
+        "k": int(successes),
+        "n": int(n),
+        "rate": float(rate),
+        "ci_low": float(lo),
+        "ci_high": float(hi),
+        "small_sample": n < BP_SMALL_SAMPLE_N,
+    }
+
+
+def aggregate_bp_meta(battle_ids: list[str] | None = None) -> dict[str, Any]:
+    """Aggregate ban/pick/win rates over final snapshots for a battle window.
+
+    Memory-only meta for dashboard; scans final frames with ``bp_list``.
+    """
+    if battle_ids is None:
+        ids: list[str] = []
+        if RAW_DIR.exists():
+            ids.extend(p.name for p in RAW_DIR.iterdir() if p.is_dir())
+        if RAW_FALLBACK_DIR.exists():
+            ids.extend(p.stem for p in RAW_FALLBACK_DIR.glob("*.json"))
+        battle_ids = sorted(set(ids))
+
+    hero_ban: Counter[str] = Counter()
+    hero_pick: Counter[str] = Counter()
+    hero_win: Counter[str] = Counter()
+    lineup_5: dict[frozenset[str], list[int]] = defaultdict(lambda: [0, 0])  # n, wins
+    lineup_3: dict[frozenset[str], list[int]] = defaultdict(lambda: [0, 0])
+    n_battles = 0
+
+    for battle_id in battle_ids:
+        payload, _ = load_battle_final_payload(str(battle_id))
+        if not payload:
+            continue
+        steps = parse_bp_list(payload)
+        if not steps:
+            continue
+        n_battles += 1
+        win_camp = int(payload.get("win_camp", 0) or 0)
+        banned: set[str] = set()
+        picks_by_camp: dict[int, list[dict[str, Any]]] = {1: [], 2: []}
+        for step in steps:
+            name = str(step.get("hero_name") or "").strip()
+            if not name:
+                continue
+            camp = int(step.get("camp", 0) or 0)
+            if step.get("action") == "ban":
+                banned.add(name)
+            elif step.get("action") == "pick" and camp in (1, 2):
+                picks_by_camp[camp].append(step)
+
+        for name in banned:
+            hero_ban[name] += 1
+
+        for camp, pick_steps in picks_by_camp.items():
+            names = [str(s.get("hero_name") or "").strip() for s in pick_steps if str(s.get("hero_name") or "").strip()]
+            won = int(win_camp == camp)
+            for name in names:
+                hero_pick[name] += 1
+                if won:
+                    hero_win[name] += 1
+            if len(names) >= 5:
+                key5 = frozenset(names[:5])
+                lineup_5[key5][0] += 1
+                lineup_5[key5][1] += won
+            core3 = _core_picks(pick_steps, 3)
+            if len(core3) >= 3:
+                lineup_3[core3][0] += 1
+                lineup_3[core3][1] += won
+
+    heroes: dict[str, dict[str, Any]] = {}
+    all_heroes = set(hero_ban) | set(hero_pick)
+    for name in all_heroes:
+        ban_n = int(hero_ban.get(name, 0))
+        pick_n = int(hero_pick.get(name, 0))
+        win_n = int(hero_win.get(name, 0))
+        heroes[name] = {
+            "hero_name": name,
+            "ban": _rate_pack(ban_n, n_battles),
+            "pick": _rate_pack(pick_n, n_battles),
+            "win": _rate_pack(win_n, pick_n),
+        }
+
+    return {
+        "n_battles": n_battles,
+        "heroes": heroes,
+        "lineup_5": {tuple(sorted(k)): {"n": v[0], "wins": v[1]} for k, v in lineup_5.items()},
+        "lineup_3": {tuple(sorted(k)): {"n": v[0], "wins": v[1]} for k, v in lineup_3.items()},
+    }
+
+
+def lookup_lineup_winrate(
+    meta: dict[str, Any],
+    pick_steps: list[dict[str, Any]],
+    *,
+    min_n: int = 1,
+) -> dict[str, Any]:
+    """Exact 5-hero set winrate; fall back to core-3 picks when insufficient."""
+    names = [str(s.get("hero_name") or "").strip() for s in pick_steps if str(s.get("hero_name") or "").strip()]
+    empty = {
+        "level": "none",
+        "level_label": "无样本",
+        "heroes": names,
+        "n": 0,
+        "wins": 0,
+        "rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "small_sample": True,
+    }
+    if not meta or not names:
+        return empty
+
+    key5 = tuple(sorted(names[:5]))
+    pack5 = (meta.get("lineup_5") or {}).get(key5)
+    if pack5 and int(pack5.get("n", 0) or 0) >= min_n:
+        n = int(pack5["n"])
+        wins = int(pack5["wins"])
+        rate_pack = _rate_pack(wins, n)
+        return {
+            "level": "exact_5",
+            "level_label": "五英雄精确",
+            "heroes": list(key5),
+            **rate_pack,
+            "wins": wins,
+        }
+
+    core3 = tuple(sorted(_core_picks(pick_steps, 3)))
+    pack3 = (meta.get("lineup_3") or {}).get(core3) if len(core3) >= 3 else None
+    if pack3 and int(pack3.get("n", 0) or 0) >= min_n:
+        n = int(pack3["n"])
+        wins = int(pack3["wins"])
+        rate_pack = _rate_pack(wins, n)
+        return {
+            "level": "core_3",
+            "level_label": "核心3 pick",
+            "heroes": list(core3),
+            **rate_pack,
+            "wins": wins,
+        }
+
+    if pack5:
+        n = int(pack5.get("n", 0) or 0)
+        wins = int(pack5.get("wins", 0) or 0)
+        rate_pack = _rate_pack(wins, n)
+        return {
+            "level": "exact_5",
+            "level_label": "五英雄精确",
+            "heroes": list(key5),
+            **rate_pack,
+            "wins": wins,
+        }
+
+    return {**empty, "heroes": names[:5]}
+
+
+def hero_meta_rows_for_battle(bp: dict[str, Any], meta: dict[str, Any]) -> list[dict[str, Any]]:
+    """Rows for this-battle heroes vs window ban/pick/win + Wilson CI."""
+    heroes_meta = meta.get("heroes") or {}
+    seen: set[str] = set()
+    rows: list[dict[str, Any]] = []
+    for step in bp.get("steps") or []:
+        name = str(step.get("hero_name") or "").strip()
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        h = heroes_meta.get(name) or {
+            "ban": _rate_pack(0, int(meta.get("n_battles", 0) or 0)),
+            "pick": _rate_pack(0, int(meta.get("n_battles", 0) or 0)),
+            "win": _rate_pack(0, 0),
+        }
+        ban, pick, win = h["ban"], h["pick"], h["win"]
+        small = ban["small_sample"] or pick["small_sample"] or win["small_sample"]
+        rows.append(
+            {
+                "英雄": name,
+                "本局动作": step.get("action"),
+                "本局阵营": step.get("camp_name"),
+                "本局分路": step.get("position_name") if step.get("action") == "pick" else "—",
+                "ban率": ban["rate"],
+                "ban_n": ban["n"],
+                "ban_CI": f"[{ban['ci_low']:.1%}, {ban['ci_high']:.1%}]",
+                "pick率": pick["rate"],
+                "pick_n": pick["n"],
+                "pick_CI": f"[{pick['ci_low']:.1%}, {pick['ci_high']:.1%}]",
+                "胜率": win["rate"],
+                "胜率_n": win["n"],
+                "胜率_CI": f"[{win['ci_low']:.1%}, {win['ci_high']:.1%}]",
+                "小样本": "小样本 · 仅供参考" if small else "",
+            }
+        )
+    return rows
 
 
 class FeatureBuilder:
@@ -1231,6 +2055,395 @@ def apply_gold_consistency_guard(
     return float(np.clip(blended, 0.02, 0.98)), meta
 
 
+# --- P07 win-prob benchmark (V11 vs gold prior; official curve not fabricated) ---
+
+WINPROB_CONFLICT_THRESHOLD = 0.15
+# README / product doc fallback when train_status & artifact lack holdout fields
+V11_README_HOLDOUT_BRIER = {"early": 0.057, "mid": 0.036, "all": 0.049, "late": None}
+
+
+def approx_gold_ratio_from_diff(gold_diff: float, minute: float) -> float:
+    """Approximate gold_ratio when total gold is unknown (CSV-only path).
+
+    Assumes combined economy grows ~2500/min for 10 players, floored so the
+    ratio stays in [-1, 1]. Mark callers with ``gold_ratio_approx=True``.
+    """
+    gd = float(gold_diff or 0.0)
+    m = max(float(minute or 1.0), 1.0)
+    total = max(abs(gd) * 2.0 + 2000.0, m * 2500.0)
+    return float(np.clip(gd / max(total, 1.0), -1.0, 1.0))
+
+
+def _prediction_csv_path(battle_id: str) -> Path:
+    return PREDICTION_DIR / f"{str(battle_id).strip()}.csv"
+
+
+def _load_prediction_csv_rows(battle_id: str) -> pd.DataFrame:
+    path = _prediction_csv_path(battle_id)
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path)
+    except (OSError, pd.errors.ParserError, UnicodeDecodeError):
+        return pd.DataFrame()
+
+
+def _downsample_pred_by_minute(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep last row per minute_bin (live CSV may repeat end-game polls)."""
+    if df.empty:
+        return df
+    out = df.copy()
+    if "minute" not in out.columns and "minute_bin" in out.columns:
+        out["minute"] = pd.to_numeric(out["minute_bin"], errors="coerce")
+    out["minute"] = pd.to_numeric(out.get("minute"), errors="coerce")
+    out = out.dropna(subset=["minute"])
+    if out.empty:
+        return out
+    out["minute_bin"] = out["minute"].map(lambda m: max(int(m), 1))
+    # Prefer last observation per bin (most recent poll for that minute)
+    return out.drop_duplicates(subset=["minute_bin"], keep="last").sort_values("minute").reset_index(drop=True)
+
+
+def _snap_economy_by_minute(battle_id: str) -> dict[int, dict[str, float]]:
+    """minute_bin -> gold_ratio / gold_diff from FeatureBuilder (official snaps)."""
+    battle_dir, _ = _resolve_battle_snapshot_dir(battle_id)
+    if battle_dir is None:
+        return {}
+    snaps = load_battle_jsons(battle_dir)
+    if not snaps:
+        return {}
+    builder = FeatureBuilder()
+    history: deque[dict[str, Any]] = deque(maxlen=40)
+    out: dict[int, dict[str, float]] = {}
+    for snap in snaps:
+        history.append(snap)
+        mb = max(int(snap.get("minute_bin") or snap.get("minute") or 1), 1)
+        if mb in out:
+            continue
+        feats = builder.build(snap, list(history)[:-1])
+        out[mb] = {
+            "gold_ratio": float(feats.get("gold_ratio", 0.0) or 0.0),
+            "gold_diff": float(feats.get("gold_diff", 0.0) or 0.0),
+            "minute": float(snap.get("minute") or mb),
+        }
+    return out
+
+
+def _replay_v11_timeline(battle_id: str) -> pd.DataFrame:
+    """Re-run V11 on raw snapshots when prediction CSV is missing."""
+    battle_dir, _ = _resolve_battle_snapshot_dir(battle_id)
+    if battle_dir is None:
+        return pd.DataFrame()
+    try:
+        artifact = load_model()
+    except Exception:
+        artifact = None
+    if not artifact:
+        return pd.DataFrame()
+    snaps = load_battle_jsons(battle_dir)
+    if not snaps:
+        return pd.DataFrame()
+    history: deque[dict[str, Any]] = deque(maxlen=40)
+    seen: set[int] = set()
+    rows: list[dict[str, Any]] = []
+    for snap in snaps:
+        minute_bin = max(int(snap.get("minute_bin") or snap.get("minute") or 1), 1)
+        history.append(snap)
+        if minute_bin in seen:
+            continue
+        seen.add(minute_bin)
+        prob, feats, _ = predict_probability(artifact, snap, list(history))
+        rows.append(
+            {
+                "minute": float(snap.get("minute") or minute_bin),
+                "minute_bin": minute_bin,
+                "camp1_win_prob": float(prob),
+                "gold_diff": float(snap.get("camp1_gold", 0) or 0) - float(snap.get("camp2_gold", 0) or 0),
+                "gold_guard_applied": float(feats.get("_gold_guard_applied", 0) or 0),
+                "low_confidence": bool(feats.get("_low_confidence", 0)),
+                "win_camp": int(snap.get("win_camp", 0) or 0),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def build_winprob_benchmark(battle_id: str) -> pd.DataFrame:
+    """Build V11 vs gold-prior benchmark series for one battle (P07).
+
+    Columns
+    -------
+    minute, p_v11, p_gold, gold_diff, gold_ratio, low_confidence,
+    gold_guard_applied, phase, delta_vs_prior
+
+    Metadata (``df.attrs``)
+    -----------------------
+    official_available : always False this round (do **not** invent p_official)
+    source : ``csv`` | ``replay`` | ``empty``
+    gold_ratio_approx : True when ratio came from gold_diff heuristic
+    battle_id, camp1_team, camp2_team, win_camp, conflict_threshold
+    """
+    battle_id = str(battle_id or "").strip()
+    empty = pd.DataFrame(
+        columns=[
+            "minute",
+            "p_v11",
+            "p_gold",
+            "gold_diff",
+            "gold_ratio",
+            "low_confidence",
+            "gold_guard_applied",
+            "phase",
+            "delta_vs_prior",
+        ]
+    )
+    empty.attrs.update(
+        {
+            "official_available": False,
+            "source": "empty",
+            "gold_ratio_approx": False,
+            "battle_id": battle_id,
+            "camp1_team": "",
+            "camp2_team": "",
+            "win_camp": 0,
+            "conflict_threshold": WINPROB_CONFLICT_THRESHOLD,
+            "message": "缺少 battle_id" if not battle_id else "暂无预测时间线",
+        }
+    )
+    if not battle_id:
+        return empty
+
+    source = "empty"
+    raw = _load_prediction_csv_rows(battle_id)
+    if not raw.empty and ("camp1_win_prob" in raw.columns or "prob" in raw.columns):
+        base = _downsample_pred_by_minute(raw)
+        source = "csv"
+    else:
+        base = _replay_v11_timeline(battle_id)
+        source = "replay" if not base.empty else "empty"
+
+    if base.empty:
+        empty.attrs["source"] = source
+        empty.attrs["message"] = (
+            f"未找到 `{battle_id}` 的 predictions CSV，且无法从 raw 回放。"
+            "请启动监控或确认 raw_snapshots / 模型可用。"
+        )
+        return empty
+
+    if "camp1_win_prob" not in base.columns and "prob" in base.columns:
+        base = base.copy()
+        base["camp1_win_prob"] = pd.to_numeric(base["prob"], errors="coerce")
+    base["camp1_win_prob"] = pd.to_numeric(base["camp1_win_prob"], errors="coerce")
+    base["minute"] = pd.to_numeric(base["minute"], errors="coerce")
+    base = base.dropna(subset=["camp1_win_prob", "minute"]).copy()
+    if base.empty:
+        empty.attrs["source"] = source
+        empty.attrs["message"] = "预测时间线存在但无有效 minute / camp1_win_prob"
+        return empty
+
+    if "minute_bin" not in base.columns:
+        base["minute_bin"] = base["minute"].map(lambda m: max(int(m), 1))
+    if "gold_diff" not in base.columns:
+        base["gold_diff"] = 0.0
+    base["gold_diff"] = pd.to_numeric(base["gold_diff"], errors="coerce").fillna(0.0)
+
+    snap_eco = _snap_economy_by_minute(battle_id)
+    any_approx = False
+    rows: list[dict[str, Any]] = []
+    for _, r in base.iterrows():
+        minute = float(r["minute"])
+        mb = max(int(r.get("minute_bin") or minute or 1), 1)
+        p_v11 = float(np.clip(float(r["camp1_win_prob"]), 0.0, 1.0))
+        gold_diff = float(r["gold_diff"])
+        eco = snap_eco.get(mb)
+        if eco is not None:
+            gold_ratio = float(eco["gold_ratio"])
+            gold_diff = float(eco.get("gold_diff", gold_diff))
+            ratio_approx = False
+        else:
+            gold_ratio = approx_gold_ratio_from_diff(gold_diff, minute)
+            ratio_approx = True
+            any_approx = True
+
+        p_gold = gold_prior_prob(gold_ratio)
+
+        if "gold_guard_applied" in r.index and pd.notna(r.get("gold_guard_applied")):
+            try:
+                guard = float(r["gold_guard_applied"]) > 0.5
+            except (TypeError, ValueError):
+                guard = False
+        else:
+            # Reconstruct guard flag from prior clash (no fake official numbers)
+            _, gmeta = apply_gold_consistency_guard(
+                p_v11,
+                {"gold_ratio": gold_ratio, "gold_diff": gold_diff},
+                enabled=True,
+                minute=mb,
+            )
+            guard = float(gmeta.get("gold_guard_applied", 0)) > 0.5
+
+        if "low_confidence" in r.index and pd.notna(r.get("low_confidence")):
+            low_conf = bool(r["low_confidence"])
+        else:
+            low_conf = bool(prediction_confidence(minute, p_v11).get("low_confidence"))
+
+        rows.append(
+            {
+                "minute": minute,
+                "p_v11": p_v11,
+                "p_gold": float(p_gold),
+                "gold_diff": gold_diff,
+                "gold_ratio": gold_ratio,
+                "gold_ratio_approx": ratio_approx,
+                "low_confidence": low_conf,
+                "gold_guard_applied": bool(guard),
+                "phase": phase_of_minute(minute),
+                "delta_vs_prior": float(p_v11 - p_gold),
+            }
+        )
+
+    out = pd.DataFrame(rows)
+    camp1 = str(base.iloc[-1].get("camp1_team", "") or "") if "camp1_team" in base.columns else ""
+    camp2 = str(base.iloc[-1].get("camp2_team", "") or "") if "camp2_team" in base.columns else ""
+    win_camp = 0
+    if "win_camp" in base.columns:
+        try:
+            win_camp = int(pd.to_numeric(base["win_camp"], errors="coerce").dropna().iloc[-1])
+        except (IndexError, ValueError, TypeError):
+            win_camp = 0
+
+    out.attrs.update(
+        {
+            "official_available": False,  # never fabricate p_official
+            "source": source,
+            "gold_ratio_approx": bool(any_approx),
+            "battle_id": battle_id,
+            "camp1_team": camp1,
+            "camp2_team": camp2,
+            "win_camp": win_camp,
+            "conflict_threshold": WINPROB_CONFLICT_THRESHOLD,
+            "message": "",
+        }
+    )
+    return out
+
+
+def summarize_winprob_benchmark_phases(
+    df: pd.DataFrame,
+    *,
+    win_camp: int | None = None,
+    conflict_threshold: float = WINPROB_CONFLICT_THRESHOLD,
+) -> pd.DataFrame:
+    """Per-phase MAE vs prior, conflict rate; optional Brier vs true winner."""
+    if df is None or df.empty:
+        return pd.DataFrame(columns=["phase", "n", "mae_vs_prior", "conflict_rate", "brier_vs_label"])
+    wc = int(win_camp if win_camp is not None else (df.attrs.get("win_camp") or 0))
+    label = None
+    if wc in (1, 2):
+        label = 1.0 if wc == 1 else 0.0
+
+    rows: list[dict[str, Any]] = []
+    for phase in ("early", "mid", "late", "all"):
+        sub = df if phase == "all" else df[df["phase"] == phase]
+        n = int(len(sub))
+        if n == 0:
+            rows.append(
+                {
+                    "phase": phase,
+                    "n": 0,
+                    "mae_vs_prior": float("nan"),
+                    "conflict_rate": float("nan"),
+                    "brier_vs_label": float("nan"),
+                }
+            )
+            continue
+        delta = pd.to_numeric(sub["delta_vs_prior"], errors="coerce").abs()
+        mae = float(delta.mean())
+        conflict_rate = float((delta >= float(conflict_threshold)).mean())
+        brier = float("nan")
+        if label is not None and "p_v11" in sub.columns:
+            p = pd.to_numeric(sub["p_v11"], errors="coerce").clip(1e-6, 1 - 1e-6)
+            brier = float(np.mean((p - label) ** 2))
+        rows.append(
+            {
+                "phase": phase,
+                "n": n,
+                "mae_vs_prior": mae,
+                "conflict_rate": conflict_rate,
+                "brier_vs_label": brier,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def load_holdout_badge_metrics() -> dict[str, Any]:
+    """Holdout Brier badge: train_status → artifact → README fallback."""
+    badge: dict[str, Any] = {
+        "version": "V11",
+        "model_name": "",
+        "trained_at": "",
+        "source": "readme",
+        "early_brier": V11_README_HOLDOUT_BRIER["early"],
+        "mid_brier": V11_README_HOLDOUT_BRIER["mid"],
+        "all_brier": V11_README_HOLDOUT_BRIER["all"],
+        "late_brier": V11_README_HOLDOUT_BRIER["late"],
+        "note": "README 口径（见数据运维 / 产品文档）",
+    }
+    # 1) train_status.json
+    status_path = REALTIME_DIR / "train_status.json"
+    if status_path.exists():
+        try:
+            train = json.loads(status_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            train = {}
+        early = train.get("holdout_early_brier")
+        mid = train.get("holdout_mid_brier")
+        all_b = train.get("holdout_real_brier") or train.get("holdout_all_brier")
+        if early not in (None, "") or mid not in (None, "") or all_b not in (None, ""):
+            badge.update(
+                {
+                    "version": str(train.get("model_name") or train.get("version") or "V11"),
+                    "model_name": str(train.get("model_name") or ""),
+                    "trained_at": str(train.get("trained_at") or train.get("updated_at") or ""),
+                    "source": "train_status",
+                    "early_brier": float(early) if early not in (None, "") else badge["early_brier"],
+                    "mid_brier": float(mid) if mid not in (None, "") else badge["mid_brier"],
+                    "all_brier": float(all_b) if all_b not in (None, "") else badge["all_brier"],
+                    "late_brier": float(train["holdout_late_brier"])
+                    if train.get("holdout_late_brier") not in (None, "")
+                    else badge["late_brier"],
+                    "note": "来自 train_status.json",
+                }
+            )
+            return badge
+
+    # 2) model artifact
+    try:
+        artifact = load_model()
+    except Exception:
+        artifact = None
+    if artifact and isinstance(artifact, dict):
+        hold = artifact.get("holdout_real") or {}
+        if hold:
+            badge.update(
+                {
+                    "version": str(artifact.get("version") or "V11"),
+                    "model_name": str(artifact.get("model_name") or ""),
+                    "trained_at": str(artifact.get("trained_at") or ""),
+                    "source": "artifact",
+                    "early_brier": float((hold.get("early") or {}).get("brier", badge["early_brier"])),
+                    "mid_brier": float((hold.get("mid") or {}).get("brier", badge["mid_brier"])),
+                    "all_brier": float((hold.get("all") or {}).get("brier", badge["all_brier"])),
+                    "late_brier": float((hold.get("late") or {}).get("brier"))
+                    if (hold.get("late") or {}).get("brier") is not None
+                    else badge["late_brier"],
+                    "note": "来自模型 artifact holdout_real",
+                }
+            )
+            return badge
+
+    return badge
+
+
 def classify_battle_swing(snapshots: list[dict[str, Any]], win_camp: int) -> dict[str, Any]:
     """Classify comeback / swing from gold trajectory vs final winner."""
     result = {
@@ -1458,6 +2671,233 @@ def detect_events(snapshots: list[dict[str, Any]]) -> list[dict[str, Any]]:
             if c2_delta > 0:
                 events.append({"minute": minute, "type": ev_type, "label": f"{name} · {cur['camp2_team']}", "team": cur["camp2_team"], "weight": weight})
     return events
+
+
+# Legacy big_dragon / lord overlaps prophet+shadow+storm; hide by default in P06 UI.
+BIG_DRAGON_EVENT_TYPES = frozenset({"lord", "big_dragon"})
+LANE_RESOURCE_POSITIONS = ("top", "jungle", "mid", "adc", "support")
+LANE_RESOURCE_KPI_KEYS = (
+    "lane_crush_count",
+    "gold_diff_roll4",
+    "gold_diff_roll10",
+    "map_pressure_index",
+    "objective_value_score",
+    "obj_tower_convert",
+    "resource_control_rate",
+)
+
+
+def _resolve_battle_snapshot_dir(battle_id: str) -> tuple[Path | None, str]:
+    """Prefer raw_snapshots, then clean curated set."""
+    battle_id = str(battle_id or "").strip()
+    if not battle_id:
+        return None, ""
+    for root, label in ((RAW_DIR, "raw_snapshots"), (CLEAN_DIR, "clean")):
+        battle_dir = root / battle_id
+        if battle_dir.is_dir() and any(battle_dir.glob("*.json")):
+            return battle_dir, f"{label}/{battle_id}"
+    return None, ""
+
+
+def _filter_lane_resource_events(
+    events: list[dict[str, Any]],
+    *,
+    include_big_dragon: bool = False,
+) -> list[dict[str, Any]]:
+    """Drop legacy big_dragon/lord unless explicitly requested (avoids dual count)."""
+    if include_big_dragon:
+        return list(events)
+    return [e for e in events if str(e.get("type") or "") not in BIG_DRAGON_EVENT_TYPES]
+
+
+def _lane_timeline_sparse_gaps(
+    minutes: list[float],
+    *,
+    gap_thresh: float = 1.5,
+) -> list[dict[str, float]]:
+    """Return minute holes larger than gap_thresh (no interpolation)."""
+    gaps: list[dict[str, float]] = []
+    for a, b in zip(minutes, minutes[1:]):
+        try:
+            lo = float(a)
+            hi = float(b)
+        except (TypeError, ValueError):
+            continue
+        if hi - lo > gap_thresh:
+            gaps.append({"from_minute": lo, "to_minute": hi, "gap_min": hi - lo})
+    return gaps
+
+
+def build_lane_resource_timeline(
+    battle_id: str,
+    *,
+    downsample_minute: bool = True,
+    include_big_dragon: bool = False,
+    sparse_gap_thresh: float = 1.5,
+) -> dict[str, Any]:
+    """Build five-lane gold-diff timeline + resource events + end-frame KPI.
+
+    Lane gold diffs come from ``parse_snapshot`` player aggregates (official).
+    KPI fields come from ``FeatureBuilder`` on the last kept frame (proxy, model-同源).
+    Does **not** call ``predict_probability``.
+    """
+    battle_id = str(battle_id or "").strip()
+    empty: dict[str, Any] = {
+        "battle_id": battle_id,
+        "source": "",
+        "camp1_team": "",
+        "camp2_team": "",
+        "frames": [],
+        "events": [],
+        "events_raw_count": 0,
+        "kpi": {},
+        "sparse": False,
+        "sparse_gaps": [],
+        "has_level_diff": False,
+        "has_hurt_diff": False,
+        "empty": True,
+        "message": "",
+    }
+    if not battle_id:
+        empty["message"] = "缺少 battle_id"
+        return empty
+
+    battle_dir, source = _resolve_battle_snapshot_dir(battle_id)
+    if battle_dir is None:
+        empty["message"] = (
+            f"未找到快照目录。请采集到 data/realtime/raw_snapshots/{battle_id} "
+            "或确认 clean 数据集中有该局。"
+        )
+        return empty
+
+    snaps = load_battle_jsons(battle_dir)
+    if not snaps:
+        empty["source"] = source
+        empty["message"] = "快照目录存在但无可解析帧（status 非 1/2 或无有效 game_duration）。"
+        return empty
+
+    # Optional per-minute_bin downsample (keep first frame of each bin).
+    kept: list[dict[str, Any]] = []
+    if downsample_minute:
+        seen_bins: set[int] = set()
+        for snap in snaps:
+            mb = max(int(snap.get("minute_bin") or snap.get("minute") or 1), 1)
+            if mb in seen_bins:
+                continue
+            seen_bins.add(mb)
+            kept.append(snap)
+    else:
+        kept = list(snaps)
+
+    frames: list[dict[str, Any]] = []
+    for snap in kept:
+        minute = float(snap.get("minute") or snap.get("minute_bin") or 0)
+        row: dict[str, Any] = {
+            "minute": minute,
+            "minute_bin": max(int(snap.get("minute_bin") or minute or 1), 1),
+            "time_sec": int(snap.get("time_sec") or 0),
+            "gold_diff": float(snap.get("camp1_gold", 0) or 0) - float(snap.get("camp2_gold", 0) or 0),
+        }
+        for pos in LANE_RESOURCE_POSITIONS:
+            row[f"gold_diff_{pos}"] = float(snap.get(f"c1_gold_{pos}", 0) or 0) - float(
+                snap.get(f"c2_gold_{pos}", 0) or 0
+            )
+            row[f"level_diff_{pos}"] = float(snap.get(f"c1_level_{pos}", 0) or 0) - float(
+                snap.get(f"c2_level_{pos}", 0) or 0
+            )
+            row[f"hurt_diff_{pos}"] = float(snap.get(f"c1_hurt_{pos}", 0) or 0) - float(
+                snap.get(f"c2_hurt_{pos}", 0) or 0
+            )
+        frames.append(row)
+
+    minutes = [float(f["minute"]) for f in frames]
+    sparse_gaps = _lane_timeline_sparse_gaps(minutes, gap_thresh=sparse_gap_thresh)
+
+    # Events on full (non-downsampled) sequence so deltas are not missed.
+    raw_events = detect_events(snaps)
+    events = _filter_lane_resource_events(raw_events, include_big_dragon=include_big_dragon)
+
+    kpi: dict[str, float] = {}
+    if kept:
+        history = list(kept[:-1])
+        feats = FeatureBuilder().build(kept[-1], history)
+        kpi = {k: float(feats.get(k, 0.0) or 0.0) for k in LANE_RESOURCE_KPI_KEYS}
+        # Also expose per-lane diffs from last frame for ledger convenience.
+        for pos in LANE_RESOURCE_POSITIONS:
+            kpi[f"gold_diff_{pos}"] = float(feats.get(f"gold_diff_{pos}", 0.0) or 0.0)
+
+    has_level = any(
+        abs(float(f.get(f"level_diff_{pos}", 0) or 0)) > 0
+        for f in frames
+        for pos in LANE_RESOURCE_POSITIONS
+    )
+    has_hurt = any(
+        abs(float(f.get(f"hurt_diff_{pos}", 0) or 0)) > 0
+        for f in frames
+        for pos in LANE_RESOURCE_POSITIONS
+    )
+
+    first = snaps[0]
+    return {
+        "battle_id": battle_id,
+        "source": source,
+        "camp1_team": str(first.get("camp1_team") or "Camp1"),
+        "camp2_team": str(first.get("camp2_team") or "Camp2"),
+        "frames": frames,
+        "events": events,
+        "events_raw_count": len(raw_events),
+        "kpi": kpi,
+        "sparse": bool(sparse_gaps),
+        "sparse_gaps": sparse_gaps,
+        "has_level_diff": has_level,
+        "has_hurt_diff": has_hurt,
+        "empty": False,
+        "message": "",
+        "snapshot_count": len(snaps),
+        "frame_count": len(frames),
+        "include_big_dragon": include_big_dragon,
+    }
+
+
+def build_lane_resource_ledger(
+    timeline: dict[str, Any],
+    *,
+    first_n_minutes: float | None = None,
+) -> list[dict[str, Any]]:
+    """Resource ledger rows: event time + gold_diff snapshot at nearest frame."""
+    frames = timeline.get("frames") or []
+    events = timeline.get("events") or []
+    if not events:
+        return []
+    rows: list[dict[str, Any]] = []
+    for ev in events:
+        try:
+            m = float(ev.get("minute", 0) or 0)
+        except (TypeError, ValueError):
+            m = 0.0
+        if first_n_minutes is not None and m > float(first_n_minutes):
+            continue
+        nearest: dict[str, Any] | None = None
+        best_d = None
+        for fr in frames:
+            d = abs(float(fr.get("minute", 0) or 0) - m)
+            if best_d is None or d < best_d:
+                best_d = d
+                nearest = fr
+        nearest = nearest or {}
+        row: dict[str, Any] = {
+            "minute": m,
+            "type": ev.get("type", ""),
+            "label": ev.get("label", ""),
+            "team": ev.get("team", ""),
+            "weight": ev.get("weight", 0),
+            "gold_diff": nearest.get("gold_diff", ""),
+        }
+        for pos in LANE_RESOURCE_POSITIONS:
+            row[f"gold_diff_{pos}"] = nearest.get(f"gold_diff_{pos}", "")
+        rows.append(row)
+    rows.sort(key=lambda r: float(r.get("minute") or 0))
+    return rows
 
 
 def infer_stage_from_battle_id(battle_id: str, index: int = -1) -> str:
