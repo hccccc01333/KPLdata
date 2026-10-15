@@ -49,6 +49,7 @@ from kpl_official_core import (
     load_model,
     load_monitor_status,
     resolve_snapshot_root,
+    simulate_series,
     summarize_winprob_benchmark_phases,
     team_style_radar,
 )
@@ -107,6 +108,7 @@ MODULES = [
     ("teams", "战队画像", "●"),
     ("players", "选手排行", "◀"),
     ("heroes", "英雄 Meta", "◇"),
+    ("sim", "大场模拟", "▣"),
     ("ops", "数据健康", "▼"),
 ]
 MODULE_OPTS = [f"{glyph} {name}" for _code, name, glyph in MODULES]
@@ -1796,6 +1798,21 @@ _ATTR_CSS = """
 
 
 @st.cache_data(ttl=600, show_spinner=False)
+def cached_hero_options() -> list[str]:
+    meta = aggregate_bp_meta()
+    heroes = meta.get("heroes") or {}
+    return sorted(
+        heroes.keys(),
+        key=lambda h: -int(((heroes[h].get("pick") or {}).get("k")) or 0),
+    )
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_simulate_series(team_a: str, team_b: str, lineup_a: tuple, lineup_b: tuple, best_of: int) -> dict:
+    return simulate_series(team_a, team_b, list(lineup_a), list(lineup_b), best_of)
+
+
+@st.cache_data(ttl=600, show_spinner=False)
 def cached_phase_attribution(battle_id: str) -> dict:
     return build_phase_attribution(battle_id)
 
@@ -2425,6 +2442,106 @@ def render_heroes() -> None:
         st.caption("该位置暂无可展示的历史对位（样本不足）。")
 
 
+# ---------------- 模块：大场模拟 ----------------
+def render_sim() -> None:
+    st.markdown(section_head(
+        "大场模拟", "赛前先验 / 阵容假设 → 单局 p → BO 系列赛（解析 · 独立同分布）",
+        right=badge("估算", "模拟=估算"), kicker="SIM · 模拟"), unsafe_allow_html=True)
+    standings = load_standings()
+    teams = standings.sort_values("rank")["team"].tolist() if not standings.empty else []
+    if len(teams) < 2:
+        st.markdown(empty_state("暂无战队数据", "analysis/teams.csv 为空。",
+                                "python scripts/build_history_dataset.py"), unsafe_allow_html=True)
+        return
+    c1, c2, c3 = st.columns([2.2, 2.2, 1.4])
+    with c1:
+        team_a = st.selectbox("战队 A", teams, index=0, key="sim_a", width="stretch")
+    with c2:
+        team_b = st.selectbox("战队 B", teams, index=1, key="sim_b", width="stretch")
+    with c3:
+        bo_label = st.selectbox("赛制", ["BO3", "BO5", "BO7"], index=1, key="sim_bo", width="stretch")
+    best_of = {"BO3": 3, "BO5": 5, "BO7": 7}[bo_label]
+    if team_a == team_b:
+        st.error("战队 A 与 B 不能相同。")
+        return
+
+    heroes = cached_hero_options()
+    st.markdown(panel_html("阵容假设（可选 · 每边最多 5 个英雄；留空或不足 3 个则仅用战队先验）", "估算",
+                           src_title="命中历史三人核心组合与英雄稳健胜率时自动纳入合成"),
+                unsafe_allow_html=True)
+    la_col, lb_col = st.columns(2)
+    with la_col:
+        lineup_a = st.multiselect(f"{team_a} 阵容", heroes, max_selections=5, key="sim_lu_a")
+    with lb_col:
+        lineup_b = st.multiselect(f"{team_b} 阵容", heroes, max_selections=5, key="sim_lu_b")
+    dup = set(lineup_a) & set(lineup_b)
+    if dup:
+        st.error(f"非法 BP：英雄重复 {'、'.join(sorted(dup))}")
+        return
+    for team, lineup in ((team_a, lineup_a), (team_b, lineup_b)):
+        pool = cached_hero_pool(team, "team")
+        if pool.get("state") == "ok" and lineup:
+            known = {r["hero"] for r in pool["rows"]}
+            outside = [h for h in lineup if h not in known]
+            if outside:
+                st.warning(f"{team} 历史未见出场：{'、'.join(outside)}（仍可模拟，样本权重会相应降低）")
+
+    sim = cached_simulate_series(team_a, team_b, tuple(lineup_a), tuple(lineup_b), best_of)
+    if sim.get("state") != "ok":
+        st.markdown(empty_state("暂时无法模拟", sim.get("message") or "数据不足"), unsafe_allow_html=True)
+        return
+
+    st.markdown(stat_row([
+        metric_card("单局 p", f"{sim['p_game']:.1%}", "估算",
+                    note=f"CI {sim['p_game_ci'][0]:.1%}~{sim['p_game_ci'][1]:.1%}", bar="blue"),
+        metric_card(f"{team_a} 大场胜率", f"{sim['series_p']:.1%}", "估算",
+                    note=f"{bo_label} · CI {sim['series_ci'][0]:.1%}~{sim['series_ci'][1]:.1%}",
+                    bar="orange", tone="acc"),
+        metric_card("等效样本", f"{sim['total_weight']:.0f}", "估算",
+                    note="证据加权 · 单项封顶 120", bar="teal"),
+        metric_card("模式", sim["mode"], "估算", note="解析计算 · 可复现导出", bar="purple"),
+    ], cols="1.4fr 1.5fr 1fr 1fr"), unsafe_allow_html=True)
+
+    left, right = st.columns([1.6, 1])
+    with left:
+        st.markdown(panel_html("证据分解（logit 加权合成）", "估算",
+                               src_title="权重 = 等效样本；结果为历史关联估计，非官方预测"),
+                    unsafe_allow_html=True)
+        sig_rows = [[
+            f'{_esc(s["signal"])} <span style="color:var(--muted);font-size:11px">（{_esc(s["source"])}）</span>',
+            f"{s['prob_a']:.1%}",
+            str(int(s["n"])),
+            f"{s['weight']:.0f}",
+            _esc(s["detail"]),
+        ] for s in sim["signals"]]
+        st.markdown(pt_table([f"信号", f"{team_a} 视角", "n", "权重", "明细"], sig_rows, num_cols={1, 2, 3}),
+                    unsafe_allow_html=True)
+    with right:
+        st.markdown(panel_html("局分分布", "估算", src_title="独立同分布解析；先至 ⌈n/2⌉ 胜"),
+                    unsafe_allow_html=True)
+        m_wins = (best_of + 1) // 2
+        dist_sorted = sorted(sim["score_dist"].items(),
+                             key=lambda kv: (-int(kv[0].split("-")[0]), -int(kv[0].split("-")[1])))
+        dist_rows = [[
+            f"<span class='strong'>{score}</span>",
+            f"{v:.1%}",
+            mini_bar(v * 100, "var(--blue)" if int(score.split("-")[0]) == m_wins else "var(--orange)"),
+        ] for score, v in dist_sorted]
+        st.markdown(pt_table(["比分", "概率", ""], dist_rows, num_cols={1}), unsafe_allow_html=True)
+        st.caption(f"局分按「{team_a} 先」在前；{team_b} 对称")
+
+    st.caption(" · ".join(sim["notes"]))
+    if sim["warnings"]:
+        st.warning("；".join(sim["warnings"]))
+    st.download_button(
+        "导出模拟配置（JSON · 可复现）",
+        data=json.dumps(sim, ensure_ascii=False, indent=2).encode("utf-8"),
+        file_name=f"sim_{team_a}_vs_{team_b}_{bo_label}.json",
+        mime="application/json",
+        key="sim_dl",
+    )
+
+
 # ---------------- 模块：数据健康 ----------------
 def render_ops() -> None:
     st.markdown(section_head(
@@ -2610,6 +2727,8 @@ def main() -> None:
         render_players()
     elif module == "heroes":
         render_heroes()
+    elif module == "sim":
+        render_sim()
     else:
         render_ops()
 

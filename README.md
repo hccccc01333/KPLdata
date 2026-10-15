@@ -43,7 +43,7 @@
 | 模型训练 | `scripts/train_realtime_model_v9.py` | clean 真实优先 + 因果特征 + 分阶段模型 |
 | 诚实回测 | `scripts/backtest_realtime_v9.py` | holdout 分阶段 Brier / ECE + 验收门禁 |
 | 自动监控 | `scripts/official_match_monitor.py` | 赛程刷新、等待开赛、识别对局、异步采集与预测 |
-| Dashboard | `scripts/dashboard.py` | 赛事中心 / 实时中控 / 单局复盘 / 战队画像 / 选手排行 / 英雄 Meta / 数据健康 |
+| Dashboard | `scripts/dashboard.py` | 赛事中心 / 实时中控 / 单局复盘 / 战队画像 / 选手排行 / 英雄 Meta / 大场模拟 / 数据健康 |
 
 ---
 
@@ -93,6 +93,7 @@ Dashboard 默认：`http://localhost:8501`
 | 战队画像 | 积分榜（Wilson CI）、风格雷达、H2H、英雄池（P11）、最近对局 |
 | 选手排行 | 按位置/指标的选手榜（官方统计字段） |
 | 英雄 Meta | 出场/禁用/胜率（Wilson CI）、三人核心组合、同位置对位（P11） |
+| 大场模拟 | 选队/BO/阵容假设 → 单局 p、大场胜率与局分分布（解析 · iid 假设、证据分解、可复现导出） |
 | 数据健康 | 监控/回补/训练状态、模型 Holdout 指标、覆盖率与缺口 |
 
 界面遵循 **「动态数据构成主义」** 设计语言（`docs/product/00-设计系统与UI规范.md`）：
@@ -110,8 +111,10 @@ Dashboard 默认：`http://localhost:8501`
 | ![单局复盘](docs/showcase/03-replay.png) | ![战队画像](docs/showcase/04-teams.png) |
 | **英雄 Meta · 出场×胜率散点（Wilson CI）** | **数据健康 · 分阶段 Holdout 与覆盖率** |
 | ![英雄 Meta](docs/showcase/06-heroes.png) | ![数据健康](docs/showcase/07-ops.png) |
+| **大场模拟 · 阵容假设与 BO 系列赛** | **选手排行 · 位置榜与英雄池** |
+| ![大场模拟](docs/showcase/08-sim.png) | ![选手排行](docs/showcase/05-players.png) |
 
-完整截图（含 选手排行、单局复盘 · 选手面板）见 [`docs/showcase/`](docs/showcase/)。
+完整截图（含 单局复盘 · 选手面板 / 阶段归因）见 [`docs/showcase/`](docs/showcase/)。
 
 ---
 

@@ -2982,21 +2982,8 @@ def build_season_honors() -> dict[str, Any]:
         season_label = "赛季"
 
     # ---------- 战队：大场结果（单局胜数多者胜，平局跳过） ----------
-    b = battles.copy()
-    b["winner"] = b["winner"].fillna("").astype(str)
-    m_rows: list[dict[str, Any]] = []
-    for mid, g in b.groupby("match_id"):
-        t1, t2 = str(g["team1"].iloc[0]), str(g["team2"].iloc[0])
-        w1 = int((g["winner"] == t1).sum())
-        w2 = int((g["winner"] == t2).sum())
-        if w1 == w2:
-            continue
-        winner = t1 if w1 > w2 else t2
-        for team in (t1, t2):
-            m_rows.append({"match_id": mid, "date": str(g["date"].iloc[0]), "team": team, "win": int(team == winner)})
-
-    if m_rows:
-        mt = pd.DataFrame(m_rows)
+    mt = _team_match_records(battles)
+    if not mt.empty:
         agg = mt.groupby("team").agg(matches=("win", "count"), wins=("win", "sum")).reset_index()
         agg = agg[agg["matches"] >= HONOR_MIN_TEAM_MATCHES].copy()
         if not agg.empty:
@@ -3531,6 +3518,235 @@ def build_hero_matchups(position: str, min_n: int = 4) -> dict[str, Any]:
         "insufficient_threshold": MATCHUP_MIN_N,
         "total_pairs": len(rows),
         "rows": qualified[:40],
+    }
+
+
+# ---------------- P16 · 大场胜率模拟器（赛前先验 / 阵容假设） ----------------
+
+SIM_VERSION = "v1"
+SIM_MAX_LINEUP = 5
+
+
+def _team_match_records(battles: pd.DataFrame) -> pd.DataFrame:
+    """大场级胜负记录（单局胜数多者胜，平局跳过）：match_id / date / team / win。"""
+    rows: list[dict[str, Any]] = []
+    if battles.empty:
+        return pd.DataFrame(columns=["match_id", "date", "team", "win"])
+    b = battles.copy()
+    b["winner"] = b["winner"].fillna("").astype(str)
+    for mid, g in b.groupby("match_id"):
+        t1, t2 = str(g["team1"].iloc[0]), str(g["team2"].iloc[0])
+        w1 = int((g["winner"] == t1).sum())
+        w2 = int((g["winner"] == t2).sum())
+        if w1 == w2:
+            continue
+        winner = t1 if w1 > w2 else t2
+        for team in (t1, t2):
+            rows.append({"match_id": mid, "date": str(g["date"].iloc[0]), "team": team, "win": int(team == winner)})
+    return pd.DataFrame(rows)
+
+
+def _logit(p: float) -> float:
+    p = min(max(float(p), 1e-4), 1 - 1e-4)
+    return float(np.log(p / (1.0 - p)))
+
+
+def _sigmoid(x: float) -> float:
+    return float(1.0 / (1.0 + np.exp(-x)))
+
+
+def _smoothed_rate(wins: float, n: float, *, prior: float = 0.5, k: float = 4.0) -> float:
+    """向先验收缩的平滑胜率（k = 先验强度）。"""
+    return (float(wins) + k * prior) / (float(n) + k)
+
+
+def _series_prob(p: float, best_of: int) -> float:
+    """独立同分布下 A 先至 ⌈best_of/2⌉ 胜的概率（解析）。"""
+    from math import comb
+
+    m = (int(best_of) + 1) // 2
+    p = min(max(float(p), 1e-6), 1 - 1e-6)
+    return float(sum(comb(m - 1 + k, k) * (p ** m) * ((1 - p) ** k) for k in range(m)))
+
+
+def _series_score_dist(p: float, best_of: int) -> dict[str, float]:
+    """局分概率质量：A 以 m:(m-1+k) 或 B 对称。"""
+    from math import comb
+
+    m = (int(best_of) + 1) // 2
+    p = min(max(float(p), 1e-6), 1 - 1e-6)
+    dist: dict[str, float] = {}
+    for k in range(m):
+        dist[f"{m}-{k}"] = float(comb(m - 1 + k, k) * (p ** m) * ((1 - p) ** k))
+        dist[f"{k}-{m}"] = float(comb(m - 1 + k, k) * ((1 - p) ** m) * (p ** k))
+    return dist
+
+
+def simulate_series(
+    team_a: str,
+    team_b: str,
+    lineup_a: list[str] | None = None,
+    lineup_b: list[str] | None = None,
+    best_of: int = 5,
+) -> dict[str, Any]:
+    """P16 · 大场（系列赛）胜率模拟：赛前先验 + 阵容假设 → 单局 p → BO 解析。
+
+    证据合成（logit 空间，权重 = 等效样本 n，封顶 120）：
+      ① 战队先验：两队赛季大场胜率（Bradley-Terry 式 logit 差）
+      ② 历史交锋：两队直接对局（大场）胜率
+      ③ 阵容英雄：双方所选英雄的稳健胜率均值差（按 BP 归档胜率，Wilson 口径的先验收缩）
+      ④ 阵容协同：命中历史三人核心组合的平滑胜率差
+    系列赛：独立同分布解析（先至 ⌈best_of/2⌉ 胜）；95% 区间由等效样本 SE 传播。
+    强假设：不建模局间心理与 BP 学习效应（进阶见 P20）；输出均为「估算」。
+    """
+    team_a, team_b = str(team_a or "").strip(), str(team_b or "").strip()
+    if not team_a or not team_b:
+        return {"state": "empty", "message": "请先选择两支战队"}
+    if team_a == team_b:
+        return {"state": "invalid", "message": "战队 A 与 B 不能相同"}
+    best_of = int(best_of) if int(best_of) in (3, 5, 7) else 5
+
+    battles = load_analysis_table("battles")
+    if battles.empty:
+        return {"state": "empty", "message": "analysis/battles.csv 为空，请先运行 scripts/build_history_dataset.py"}
+    records = _team_match_records(battles)
+    if records.empty:
+        return {"state": "empty", "message": "无已完赛大场记录"}
+
+    def _team_wr(team: str) -> tuple[float, int]:
+        sub = records[records["team"] == team]
+        n = int(len(sub))
+        return _smoothed_rate(int(sub["win"].sum()), n), n
+
+    wr_a, n_a = _team_wr(team_a)
+    wr_b, n_b = _team_wr(team_b)
+    if n_a == 0 and n_b == 0:
+        return {"state": "empty", "message": f"赛季记录中未找到 {team_a} / {team_b}"}
+
+    signals: list[dict[str, Any]] = []
+    warnings: list[str] = []
+
+    # ① 战队先验
+    p1 = _sigmoid(_logit(wr_a) - _logit(wr_b))
+    w1 = min(n_a + n_b, 120)
+    signals.append({
+        "signal": "战队先验（赛季大场胜率）",
+        "prob_a": p1,
+        "n": n_a + n_b,
+        "weight": w1,
+        "detail": f"{team_a} {wr_a:.1%}（n={n_a}）｜{team_b} {wr_b:.1%}（n={n_b}）",
+        "source": "官方",
+    })
+    if n_a < 8 or n_b < 8:
+        warnings.append(f"战队样本偏低（{team_a} n={n_a} / {team_b} n={n_b}），已向 50% 收缩")
+
+    # ② 历史交锋（大场）
+    both = records[records["team"].isin([team_a, team_b])]
+    h2h = both.groupby("match_id").filter(lambda g: set(g["team"]) == {team_a, team_b})
+    if not h2h.empty:
+        n_h2h = int(h2h.groupby("match_id").size().shape[0])
+        wins_h2h = int(h2h[h2h["team"] == team_a]["win"].sum())
+        p2 = _smoothed_rate(wins_h2h, n_h2h, prior=0.5, k=2.0)
+        signals.append({
+            "signal": "历史交锋（大场）",
+            "prob_a": p2,
+            "n": n_h2h,
+            "weight": float(n_h2h),
+            "detail": f"{team_a} {wins_h2h}W{n_h2h - wins_h2h}L",
+            "source": "官方",
+        })
+
+    # ③ 阵容英雄（需要双方各 ≥3 个英雄）
+    lineup_a = [str(h).strip() for h in (lineup_a or []) if str(h).strip()][:SIM_MAX_LINEUP]
+    lineup_b = [str(h).strip() for h in (lineup_b or []) if str(h).strip()][:SIM_MAX_LINEUP]
+    meta = aggregate_bp_meta()
+    heroes_meta = meta.get("heroes") or {}
+
+    def _hero_wr(name: str) -> tuple[float, int]:
+        h = (heroes_meta.get(name) or {}).get("win") or {}
+        return _smoothed_rate(h.get("k", 0), h.get("n", 0), prior=0.5, k=6.0), int(h.get("n") or 0)
+
+    if len(lineup_a) >= 3 and len(lineup_b) >= 3:
+        known_a = [h for h in lineup_a if h in heroes_meta]
+        known_b = [h for h in lineup_b if h in heroes_meta]
+        if known_a and known_b:
+            logits_a = [_logit(_hero_wr(h)[0]) for h in known_a]
+            logits_b = [_logit(_hero_wr(h)[0]) for h in known_b]
+            p3 = _sigmoid(float(np.mean(logits_a) - np.mean(logits_b)))
+            ns = [n for h in known_a + known_b for n in [_hero_wr(h)[1]]]
+            n3 = int(min(ns)) if ns else 0
+            signals.append({
+                "signal": "阵容英雄（稳健胜率均值差）",
+                "prob_a": p3,
+                "n": n3,
+                "weight": float(n3),
+                "detail": f"{team_a} 阵容均胜率 {np.mean([_hero_wr(h)[0] for h in known_a]):.1%}｜"
+                          f"{team_b} {np.mean([_hero_wr(h)[0] for h in known_b]):.1%}",
+                "source": "估算",
+            })
+
+        # ④ 阵容协同（命中历史三人核心组合）
+        lineup_3 = meta.get("lineup_3") or {}
+
+        def _best_trio(lineup: list[str]) -> tuple[float, int] | None:
+            best: tuple[float, int] | None = None
+            for key, val in lineup_3.items():
+                if set(key) <= set(lineup):
+                    n, wins = int(val.get("n", 0)), int(val.get("wins", 0))
+                    if n >= 2 and (best is None or n > best[1]):
+                        best = (_smoothed_rate(wins, n, prior=0.5, k=3.0), n)
+            return best
+
+        trio_a = _best_trio(lineup_a)
+        trio_b = _best_trio(lineup_b)
+        if trio_a and trio_b:
+            p4 = _sigmoid(_logit(trio_a[0]) - _logit(trio_b[0]))
+            signals.append({
+                "signal": "阵容协同（历史三人核心组合）",
+                "prob_a": p4,
+                "n": min(trio_a[1], trio_b[1]),
+                "weight": float(min(trio_a[1], trio_b[1])),
+                "detail": f"{team_a} 核心组 {trio_a[0]:.0%}（n={trio_a[1]}）｜{team_b} {trio_b[0]:.0%}（n={trio_b[1]}）",
+                "source": "估算",
+            })
+
+    # 证据池化（logit 加权）
+    total_w = float(sum(s["weight"] for s in signals))
+    if total_w <= 0:
+        return {"state": "empty", "message": "没有可用证据（样本为空）"}
+    pooled_logit = sum(s["weight"] * _logit(s["prob_a"]) for s in signals) / total_w
+    p_game = _sigmoid(pooled_logit)
+    se_logit = 1.0 / float(np.sqrt(total_w))
+    p_lo = _sigmoid(pooled_logit - 1.96 * se_logit)
+    p_hi = _sigmoid(pooled_logit + 1.96 * se_logit)
+    if total_w < 30:
+        warnings.append(f"等效样本偏低（Σn={total_w:.0f}），结果仅供参考")
+
+    series_p = _series_prob(p_game, best_of)
+    score_dist = _series_score_dist(p_game, best_of)
+    return {
+        "state": "ok",
+        "version": SIM_VERSION,
+        "mode": "赛前先验" if (len(lineup_a) < 3 or len(lineup_b) < 3) else "阵容假设",
+        "team_a": team_a,
+        "team_b": team_b,
+        "best_of": best_of,
+        "lineup_a": lineup_a,
+        "lineup_b": lineup_b,
+        "p_game": p_game,
+        "p_game_ci": [p_lo, p_hi],
+        "series_p": series_p,
+        "series_ci": [_series_prob(p_lo, best_of), _series_prob(p_hi, best_of)],
+        "score_dist": score_dist,
+        "signals": signals,
+        "total_weight": total_w,
+        "warnings": warnings,
+        "notes": [
+            "独立同分布假设：未建模局间心理 / BP 学习效应（进阶见 P20）",
+            "合成：logit 空间加权（权重=等效样本，封顶 120）；系列赛解析计算，可复现",
+            "输出为「估算」，非官方预测",
+        ],
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 
