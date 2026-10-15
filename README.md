@@ -39,6 +39,7 @@
 | 官方核心层 | `scripts/kpl_official_core.py` | 赛程、快照解析、特征、预测、复盘、健康报告 |
 | 赛程归档 | `scripts/build_schedule_archive.py` | 跨赛季赛程索引 |
 | 历史回补 | `scripts/backfill_history.py` | 按赛程批量回补对局 |
+| 结果回补 | `scripts/repair_missing_results.py` | 未结算对局补拉最终帧（回补后重建分析表） |
 | 模型训练 | `scripts/train_realtime_model_v9.py` | clean 真实优先 + 因果特征 + 分阶段模型 |
 | 诚实回测 | `scripts/backtest_realtime_v9.py` | holdout 分阶段 Brier / ECE + 验收门禁 |
 | 自动监控 | `scripts/official_match_monitor.py` | 赛程刷新、等待开赛、识别对局、异步采集与预测 |

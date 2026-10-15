@@ -136,7 +136,7 @@ def build():
                         "game_no": seq,
                         "team": team,
                         "opponent": opp,
-                        "win": int(team == winner),
+                        "win": int(team == winner) if winner else float("nan"),
                         "duration_min": duration_min,
                         "gold": final.get(f"{p}_gold", 0),
                         "gold_diff": final.get(f"{p}_gold", 0) - final.get(f"{q}_gold", 0),

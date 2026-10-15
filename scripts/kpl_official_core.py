@@ -802,6 +802,7 @@ def filter_teams_window(teams: pd.DataFrame, mode: str = "all") -> pd.DataFrame:
 def build_proxy_standings(teams_df: pd.DataFrame) -> pd.DataFrame:
     """Proxy standings: wins → win_rate → avg_gold_diff; includes Wilson CI.
 
+    Un-decided battles (missing winner → ``win`` 为空) are excluded.
     Not official league points — rank is estimated from window battle rows.
     """
     cols = [
@@ -822,7 +823,9 @@ def build_proxy_standings(teams_df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(columns=cols)
 
     df = teams_df.copy()
-    df["win"] = pd.to_numeric(df.get("win", 0), errors="coerce").fillna(0).astype(int)
+    df["win"] = pd.to_numeric(df.get("win", 0), errors="coerce")
+    df = df[df["win"].notna()].copy()  # 未结算对局不计入积分榜
+    df["win"] = df["win"].astype(int)
     for col in ("gold_diff", "kill_diff", "tower_diff"):
         if col not in df.columns:
             df[col] = 0.0

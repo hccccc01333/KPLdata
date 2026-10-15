@@ -1983,15 +1983,18 @@ def render_teams(matches: pd.DataFrame, battles: pd.DataFrame, teams: pd.DataFra
                     unsafe_allow_html=True)
         st.plotly_chart(radar_chart(team_style_radar(t_sub), team), width="stretch")
     with right:
-        wins = int((t_sub["win"] == 1).sum()) if not t_sub.empty else 0
-        games = len(t_sub)
+        t_dec = t_sub[t_sub["win"].notna()] if not t_sub.empty else t_sub
+        wins = int((t_dec["win"] == 1).sum()) if not t_dec.empty else 0
+        games = len(t_dec)
+        undecided = len(t_sub) - games
         w_rate = wins / games if games else 0.0
         st.markdown(stat_strip([
-            ("战绩", f"{wins}W {games - wins}L", f"{games} 局样本"),
+            ("战绩", f"{wins}W {games - wins}L",
+             f"{games} 局样本" + (f" · 未结算 {undecided} 场" if undecided else "")),
             ("胜率", f"{w_rate:.1%}", "analysis/teams"),
             ("平均金差", fmt_signed(t_sub["gold_diff"].mean() if games else 0, 0), "蓝方为正"),
         ], cols="1fr 1fr 1.2fr"), unsafe_allow_html=True)
-        h2h = t_sub.groupby("opponent").agg(
+        h2h = t_dec.groupby("opponent").agg(
             胜=("win", lambda s: int((s == 1).sum())),
             局数=("win", "size"),
         ).reset_index()
