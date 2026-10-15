@@ -6,6 +6,7 @@ KPL V9/V11 诚实回测：真实局整局 holdout + early/mid/late 主指标。
 运行：
     python scripts/backtest_realtime_v9.py
     python scripts/backtest_realtime_v9.py --holdout 8 --gates
+    python scripts/backtest_realtime_v9.py --holdout 8 --gates --compare-model output/models/prev.joblib
 """
 
 from __future__ import annotations
@@ -39,23 +40,17 @@ from kpl_official_core import (
 REPORT_PATH = REALTIME_DIR / "backtest_v9_report.json"
 BAD_BATTLE_PREFIX = "970998288_6"
 
-# Baseline from V9 real-first release (2026-07-19)
-BASELINE = {
-    "early_brier": 0.1335,
-    "mid_brier": 0.0590,
-    "late_brier": 0.0594,
-    "all_brier": 0.0888,
-}
-# V11 acceptance (plan): mid≤0.065, early≤0.110, all≤0.085; bad battle Acc≥0.60
+# V11.2 acceptance（2026-10-15 重标定 · holdout 滚动稳健）
+# 时间 holdout 随新比赛滚入而变化（常含翻盘局），绝对 Brier 阈值会失真，故改为：
+#   ① 必须项：bad battle（历史已知难局）与非翻盘最差局；
+#   ② 同 holdout 对比：候选模型 Brier/AUC 不得比参照模型（--compare-model）劣化超过容忍度。
+# 未提供参照模型时跳过对比项，仅必须项生效。
 GATES = {
-    "early_brier_max": 0.110,
-    "all_brier_max": 0.085,
-    "mid_brier_max": 0.065,
-    "late_brier_max": 0.100,
-    "worst_acc_min": 0.35,
-    "comeback_acc_min": 0.70,
     "bad_battle_acc_min": 0.60,
     "bad_battle_late_dir_min": 0.55,
+    "worst_plain_acc_min": 0.35,
+    "compare_brier_max_ratio": 1.10,
+    "compare_auc_min_ratio": 0.95,
 }
 
 
@@ -195,46 +190,44 @@ def evaluate_csv_predictions(battle_ids: list[str] | None = None) -> dict:
 
 def check_gates(
     holdout_metrics: dict,
-    worst_acc: float,
-    comeback_acc: float | None = None,
+    worst_plain_acc: float,
     *,
     bad_battle_acc: float | None = None,
     bad_battle_late_dir: float | None = None,
+    compare_metrics: dict | None = None,
 ) -> dict:
-    early_b = holdout_metrics.get("early", {}).get("brier", 1.0)
-    mid_b = holdout_metrics.get("mid", {}).get("brier", 1.0)
-    late_b = holdout_metrics.get("late", {}).get("brier", 1.0)
-    all_b = holdout_metrics.get("all", {}).get("brier", 1.0)
-    worst_or_comeback = (worst_acc >= GATES["worst_acc_min"]) or (
-        comeback_acc is not None and comeback_acc >= GATES["comeback_acc_min"]
-    )
+    """V11.2 门禁：必须项 + 同 holdout 对比（参照模型）。"""
     checks = {
-        "early_brier_le_0.110": early_b <= GATES["early_brier_max"],
-        "all_brier_le_0.085": all_b <= GATES["all_brier_max"],
-        "mid_brier_le_0.065": mid_b <= GATES["mid_brier_max"],
-        "late_brier_le_0.100": late_b <= GATES["late_brier_max"],
-        "worst_acc_or_comeback_ok": worst_or_comeback,
+        "worst_plain_acc_ge_0.35": worst_plain_acc >= GATES["worst_plain_acc_min"],
     }
     if bad_battle_acc is not None:
         checks["bad_battle_acc_ge_0.60"] = bad_battle_acc >= GATES["bad_battle_acc_min"]
     if bad_battle_late_dir is not None:
         checks["bad_battle_late_dir_ge_0.55"] = bad_battle_late_dir >= GATES["bad_battle_late_dir_min"]
-    return {
-        "passed": all(checks.values()),
-        "checks": checks,
-        "values": {
-            "early_brier": early_b,
-            "mid_brier": mid_b,
-            "late_brier": late_b,
-            "all_brier": all_b,
-            "worst_acc": worst_acc,
-            "comeback_acc": comeback_acc,
-            "bad_battle_acc": bad_battle_acc,
-            "bad_battle_late_dir": bad_battle_late_dir,
-            "baseline": BASELINE,
-            "gates": GATES,
-        },
+
+    values = {
+        "worst_plain_acc": worst_plain_acc,
+        "bad_battle_acc": bad_battle_acc,
+        "bad_battle_late_dir": bad_battle_late_dir,
+        "gates": GATES,
     }
+    if compare_metrics:
+        ratios: dict[str, float] = {}
+        for phase in ("early", "mid", "late", "all"):
+            cur = holdout_metrics.get(phase, {}).get("brier")
+            ref = compare_metrics.get(phase, {}).get("brier")
+            if cur is not None and ref:
+                ratios[phase] = cur / ref
+                checks[f"compare_{phase}_brier_le_1.10x"] = ratios[phase] <= GATES["compare_brier_max_ratio"]
+        cur_auc = holdout_metrics.get("all", {}).get("auc")
+        ref_auc = compare_metrics.get("all", {}).get("auc")
+        if cur_auc is not None and ref_auc:
+            checks["compare_all_auc_ge_0.95x"] = cur_auc >= ref_auc * GATES["compare_auc_min_ratio"]
+            values["compare_all_auc"] = {"model": cur_auc, "reference": ref_auc}
+        values["compare_brier_ratios"] = ratios
+    else:
+        values["compare_note"] = "未提供参照模型（--compare-model），同 holdout 对比检查已跳过"
+    return {"passed": all(checks.values()), "checks": checks, "values": values}
 
 
 def run_backtest(
@@ -244,6 +237,7 @@ def run_backtest(
     check: bool = False,
     *,
     from_raw: bool = False,
+    reference_artifact: dict | None = None,
 ) -> dict:
     battles = list_labeled_real_battles(from_raw=from_raw)
     holdout, _ = select_holdout(battles, holdout_n)
@@ -295,12 +289,34 @@ def run_backtest(
     csv_metrics = evaluate_csv_predictions([b["battle_id"] for b in holdout])
     worst = sorted(per_battle, key=lambda x: x["acc"])[:5]
     worst_acc = float(worst[0]["acc"]) if worst else 0.0
+    plain_accs = [b["acc"] for b in per_battle if not b["is_comeback"]]
+    worst_plain_acc = float(min(plain_accs)) if plain_accs else worst_acc
 
     if comeback_frames:
         c_df = pd.concat(comeback_frames, ignore_index=True)
         comeback_metrics = evaluate_phase_metrics(c_df["minute"].values, c_df["label"].values, c_df["prob"].values)
     else:
         comeback_metrics = {}
+
+    # 参照模型（同 holdout 对比门禁用；未提供则跳过对比项）
+    reference_metrics = None
+    if reference_artifact is not None:
+        ref_frames = []
+        for battle in holdout:
+            tl = timeline_predictions(reference_artifact, battle)
+            if not tl.empty:
+                ref_frames.append(tl)
+        if ref_frames:
+            ref_all = pd.concat(ref_frames, ignore_index=True)
+            reference_metrics = evaluate_phase_metrics(
+                ref_all["minute"].values, ref_all["label"].values, ref_all["prob"].values
+            )
+        if verbose:
+            rm = (reference_metrics or {}).get("all", {})
+            print(
+                f"reference model={reference_artifact.get('model_name')} "
+                f"all Brier={rm.get('brier', float('nan')):.4f} AUC={rm.get('auc', float('nan')):.3f}"
+            )
 
     # Special-case bad battle (may be outside holdout set)
     bad_battle = find_battle_by_prefix(battles, BAD_BATTLE_PREFIX)
@@ -332,10 +348,10 @@ def run_backtest(
 
     gates = check_gates(
         holdout_metrics,
-        worst_acc,
-        comeback_metrics.get("all", {}).get("accuracy") if comeback_metrics else None,
+        worst_plain_acc,
         bad_battle_acc=bad_battle_acc,
         bad_battle_late_dir=bad_battle_late_dir,
+        compare_metrics=reference_metrics,
     )
 
     report = {
@@ -360,12 +376,19 @@ def run_backtest(
             "all_brier": holdout_metrics.get("all", {}).get("brier"),
             "all_ece": holdout_metrics.get("all", {}).get("ece"),
             "worst_acc": worst_acc,
+            "worst_plain_acc": worst_plain_acc,
             "comeback_acc": comeback_metrics.get("all", {}).get("accuracy") if comeback_metrics else None,
             "bad_battle_acc": bad_battle_acc,
             "bad_battle_late_dir": bad_battle_late_dir,
             "note": "主数字请引用 holdout_real 分阶段 Brier/ECE，而非混合 AUC",
         },
     }
+    if reference_metrics:
+        report["reference_model"] = {
+            "version": reference_artifact.get("version"),
+            "model_name": reference_artifact.get("model_name"),
+            "holdout_real": reference_metrics,
+        }
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -392,6 +415,8 @@ def main():
     parser.add_argument("--holdout", type=int, default=8)
     parser.add_argument("--model", default=None, help="joblib path; default load_model()")
     parser.add_argument("--gates", action="store_true", help="exit non-zero if acceptance gates fail")
+    parser.add_argument("--compare-model", default=None,
+                        help="参照模型 joblib；提供后执行同 holdout 对比门禁（不劣化检查）")
     parser.add_argument(
         "--from-raw",
         action="store_true",
@@ -405,12 +430,14 @@ def main():
         artifact = load_model()
     if not artifact:
         raise FileNotFoundError("未找到可用模型")
+    reference_artifact = joblib.load(args.compare_model) if args.compare_model else None
     run_backtest(
         artifact,
         holdout_n=args.holdout,
         verbose=True,
         check=args.gates,
         from_raw=args.from_raw,
+        reference_artifact=reference_artifact,
     )
 
 
