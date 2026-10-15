@@ -100,6 +100,20 @@ Dashboard 默认：`http://localhost:8501`
 
 ---
 
+## 界面预览
+
+| 赛事中心 · 采集覆盖与赛程 | 实时中控 · 胜率主图与金差护栏 |
+| --- | --- |
+| ![赛事中心](docs/showcase/01-schedule.png) | ![实时中控](docs/showcase/02-live.png) |
+| **单局复盘 · BP / 胜率 / 分路 / 选手 / 事件** | **战队画像 · 积分榜（Wilson CI）与风格雷达** |
+| ![单局复盘](docs/showcase/03-replay.png) | ![战队画像](docs/showcase/04-teams.png) |
+| **英雄 Meta · 出场×胜率散点（Wilson CI）** | **数据健康 · 分阶段 Holdout 与覆盖率** |
+| ![英雄 Meta](docs/showcase/06-heroes.png) | ![数据健康](docs/showcase/07-ops.png) |
+
+完整截图（含 选手排行、单局复盘 · 选手面板）见 [`docs/showcase/`](docs/showcase/)。
+
+---
+
 ## 模型与评估
 
 - **主指标**：clean 真实局 holdout 的 early / mid / late **Brier、ECE、方向正确率**（不以混合 AUC 为主）
@@ -144,6 +158,7 @@ Dashboard 默认：`http://localhost:8501`
 
 | 版本 | 日期 | 更新内容 |
 |------|------|----------|
+| **V12** | 2026-08 | 前端重写（七模块 + 设计语言）；核心库扩展（积分榜/雷达/BP/分路/对标/组合）；采集异步化（0.1s + 异步预测）；产品文档矩阵 P01–P20（模型仍为 V11） |
 | **V11** | 2026-07-20 | clean 数据集分层；因果特征（roll/动量/分路等）；Early RF + Midlate Voting；特征消融与模型选型；5–7′ 轻度金差护栏；holdout early Brier ≈0.057 / all ≈0.049，gates 通过 |
 | **V10** | 2026-07 | 坏局诊断与金差一致性护栏（≥8′）；拐点/战报；midlate 校准择优；特殊局验收门禁 |
 | **V9** | 2026-07 | 官方平台统一 FeatureBuilder；真实优先训练 + 因果战队先验；分阶段 early/midlate 混合预测 |
