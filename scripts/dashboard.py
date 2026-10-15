@@ -1394,7 +1394,7 @@ def render_schedule(matches: pd.DataFrame, battles: pd.DataFrame, archive: pd.Da
                     src_title="腾讯 KPL 公开赛事接口·赛程", bar="blue"),
         metric_card("已采集对局", f"{cov_battles}/{total_battles}", "官方",
                     note="raw_snapshots / 时间线可复盘", src_title="本地快照目录探测", bar="teal"),
-        metric_card("采集覆盖率", f"{rate:.1%}", "官方", note="已采集对局 ÷ 归档对局",
+        metric_card("采集覆盖率", f"{rate:.1%}", "官方", note="入表对局中有时间线占比",
                     delta=f"▲ {fmt_int(total_snaps)} 切片", bar="orange"),
         metric_card("数据时钟", latest_data_time(), "官方", note="最近一次本地快照写入",
                     src_title="predictions / raw_snapshots 最新 mtime", bar="purple"),
@@ -1951,7 +1951,7 @@ def render_teams(matches: pd.DataFrame, battles: pd.DataFrame, teams: pd.DataFra
         ("战队数", fmt_int(len(standings)), "官方口径"),
         ("样本对局", fmt_int(standings["games"].sum()), "analysis/teams"),
         ("平均胜率", f"{standings['win_rate'].mean():.1%}", "Wilson CI"),
-        ("平均金差", fmt_signed(standings["avg_gold_diff"].mean(), 0), "蓝方为正"),
+        ("平均金差", fmt_signed(standings["avg_gold_diff"].mean(), 0), "各队均值 · 蓝方为正"),
     ], cols="1fr 1fr 1fr 1fr"), unsafe_allow_html=True)
 
     st.markdown(panel_html("积分榜（Wilson CI）", "官方", src_title="build_proxy_standings · 胜率置信区间"),
@@ -2230,7 +2230,7 @@ def render_ops() -> None:
         ("归档大场", fmt_int(cov.get("archive_matches")), "官方"),
         ("归档对局", fmt_int(cov.get("archive_battles")), "官方"),
         ("已采快照对局", fmt_int(cov.get("raw_battles")), "本地探测"),
-        ("覆盖率", f"{cov.get('coverage_rate', 0):.1%}", "已采 ÷ 归档"),
+        ("覆盖率", f"{cov.get('coverage_rate', 0):.1%}", "已采 ÷ 归档（全档案）"),
     ], cols="1fr 1fr 1fr 1fr"), unsafe_allow_html=True)
     missing = cov.get("missing_battles") or []
     if missing:

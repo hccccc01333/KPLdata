@@ -16,6 +16,7 @@ import argparse
 import json
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 if sys.platform == "win32":
@@ -73,12 +74,22 @@ def main():
     parser.add_argument("--date", default=None, help="按日期回补 YYYY-MM-DD")
     parser.add_argument("--team", default=None, help="按战队关键字回补")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--missing", action="store_true", help="只回补本地没有快照文件的对局")
+    parser.add_argument("--jobs", type=int, default=1, help="并发拉取数（默认 1；建议 ≤6）")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--sleep", type=float, default=0.4)
     args = parser.parse_args()
 
     center = ScheduleCenter()
     targets = collect_targets(center, args.date, args.team, args.limit)
+    if args.missing:
+        before = len(targets)
+        targets = [
+            t for t in targets
+            if not (RAW_DIR / t["battle_id"]).exists()
+            or not any((RAW_DIR / t["battle_id"]).glob("*.json"))
+        ]
+        print(f"--missing: {before} -> {len(targets)} 个缺快照对局")
     write_status({"state": "planning", "target_count": len(targets), "dry_run": args.dry_run})
     print(f"targets: {len(targets)}")
     if args.dry_run:
@@ -89,29 +100,50 @@ def main():
 
     ok = 0
     failed = 0
-    for i, item in enumerate(targets, 1):
+    total = len(targets)
+
+    def _fetch(battle_id: str):
+        return fetch_freshest_battle(battle_id, n_probes=2, gap_sec=0.3)
+
+    def handle(i: int, item: dict, raw: dict | None) -> None:
+        nonlocal ok, failed
         battle_id = item["battle_id"]
-        raw = fetch_freshest_battle(battle_id, n_probes=2, gap_sec=0.3)
         if raw:
             path = save_battle(battle_id, raw)
             ok += 1
-            print(f"[{i}/{len(targets)}] OK {battle_id} -> {path.name}")
+            print(f"[{i}/{total}] OK {battle_id} -> {path.name}", flush=True)
         else:
             failed += 1
-            print(f"[{i}/{len(targets)}] FAIL {battle_id}")
+            print(f"[{i}/{total}] FAIL {battle_id}", flush=True)
         write_status(
             {
                 "state": "running",
-                "target_count": len(targets),
+                "target_count": total,
                 "processed": i,
                 "success": ok,
                 "failed": failed,
                 "current_battle_id": battle_id,
             }
         )
-        time.sleep(args.sleep)
 
-    write_status({"state": "done", "target_count": len(targets), "success": ok, "failed": failed})
+    jobs = max(1, int(args.jobs))
+    if jobs == 1:
+        for i, item in enumerate(targets, 1):
+            handle(i, item, _fetch(item["battle_id"]))
+            time.sleep(args.sleep)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            futures = {pool.submit(_fetch, t["battle_id"]): t for t in targets}
+            for i, fut in enumerate(as_completed(futures), 1):
+                item = futures[fut]
+                try:
+                    raw = fut.result()
+                except Exception as e:
+                    print(f"[{i}/{total}] ERROR {item['battle_id']}: {type(e).__name__}", flush=True)
+                    raw = None
+                handle(i, item, raw)
+
+    write_status({"state": "done", "target_count": total, "success": ok, "failed": failed})
 
 
 if __name__ == "__main__":
