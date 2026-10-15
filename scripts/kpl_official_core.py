@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import json
 import math
+import os
 import time
 from collections import Counter, defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -42,7 +43,7 @@ BASE_URL_BATTLE = "https://prod.comp.smoba.qq.com/leaguesite/battle/open"
 BASE_URL_LEAGUES = "https://prod.comp.smoba.qq.com/leaguesite/leagues/open"
 BASE_URL_LEAGUE = "https://prod.comp.smoba.qq.com/leaguesite/matches/open"
 BASE_URL_MATCH = "https://prod.comp.smoba.qq.com/leaguesite/match/battles/open"
-LEAGUE_ID = 20260003  # 2026 KPL夏季赛（进行中）；挑战者杯=20260002
+LEAGUE_ID = 20260004  # 2026 KPL年度总决赛（进行中）；夏季赛=20260003，挑战者杯=20260002
 
 HEADERS_API = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N)",
@@ -85,10 +86,27 @@ MONOTONIC_TOLERANCE_SEC = 30
 REWIND_ACCEPT_TOLERANCE_SEC = 3
 
 
+_KPL_SESSION: Any = None
+
+
+def _kpl_session():
+    """KPL 接口专用 Session：默认绕过系统 / 环境代理（国内接口直连，代理故障不影响采集）。
+
+    需要走代理时设环境变量 ``KPL_USE_PROXY=1``。
+    """
+    global _KPL_SESSION
+    if _KPL_SESSION is None:
+        sess = requests.Session()
+        sess.trust_env = os.environ.get("KPL_USE_PROXY", "").strip() == "1"
+        sess.headers.update(HEADERS_API)
+        _KPL_SESSION = sess
+    return _KPL_SESSION
+
+
 def api_get(url: str, params: dict[str, Any] | None = None, timeout: int = 12) -> dict[str, Any] | None:
     """Return a valid KPL API response, or None when the API is unavailable."""
     try:
-        resp = requests.get(url, params=params, headers=HEADERS_API, timeout=timeout)
+        resp = _kpl_session().get(url, params=params, timeout=timeout)
         resp.raise_for_status()
         data = resp.json()
         if data.get("code") == 200:
@@ -352,6 +370,18 @@ class ScheduleCenter:
         df = pd.DataFrame(archive_rows)
         if not df.empty:
             df = df.sort_values(["start_time", "match_id"]).reset_index(drop=True)
+            # 跨赛季合并：保留既有归档中本次未刷新联赛的行（避免单联赛刷新覆盖其它赛季）
+            if save_path.exists():
+                try:
+                    old = pd.read_csv(save_path, dtype={"league_id": str, "match_id": str}).fillna("")
+                    fresh_leagues = set(df["league_id"].astype(str).unique())
+                    keep = old[~old["league_id"].astype(str).isin(fresh_leagues)]
+                    if not keep.empty:
+                        df = pd.concat([keep, df], ignore_index=True)
+                        df = df.drop_duplicates(subset=["league_id", "match_id"], keep="last")
+                        df = df.sort_values(["start_time", "match_id"]).reset_index(drop=True)
+                except (OSError, pd.errors.ParserError):
+                    pass
             save_path.parent.mkdir(parents=True, exist_ok=True)
             df.to_csv(save_path, index=False, encoding="utf-8-sig")
         return df

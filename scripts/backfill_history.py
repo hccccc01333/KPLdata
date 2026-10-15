@@ -76,6 +76,8 @@ def main():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--missing", action="store_true", help="只回补本地没有快照文件的对局")
     parser.add_argument("--jobs", type=int, default=1, help="并发拉取数（默认 1；建议 ≤6）")
+    parser.add_argument("--retries", type=int, default=1, help="单场拉取失败后的重试次数（默认 1）")
+    parser.add_argument("--retry-backoff", type=float, default=3.0, help="重试退避基数（秒）")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--sleep", type=float, default=0.4)
     args = parser.parse_args()
@@ -103,7 +105,13 @@ def main():
     total = len(targets)
 
     def _fetch(battle_id: str):
-        return fetch_freshest_battle(battle_id, n_probes=2, gap_sec=0.3)
+        for attempt in range(max(1, int(args.retries) + 1)):
+            raw = fetch_freshest_battle(battle_id, n_probes=2, gap_sec=0.3)
+            if raw is not None:
+                return raw
+            if attempt < int(args.retries):
+                time.sleep(float(args.retry_backoff) * (attempt + 1))
+        return None
 
     def handle(i: int, item: dict, raw: dict | None) -> None:
         nonlocal ok, failed

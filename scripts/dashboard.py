@@ -1379,7 +1379,7 @@ def match_row_html(row: pd.Series, wins1: int, wins2: int, cov: int, bo_n: int,
 def render_schedule(matches: pd.DataFrame, battles: pd.DataFrame, archive: pd.DataFrame) -> None:
     st.markdown(section_head(
         "赛事中心", "赛程 · 采集覆盖 · 复盘入口",
-        right=badge("进行中", "2026 夏季赛"), kicker="SCHEDULE · 赛程"), unsafe_allow_html=True)
+        right=badge("进行中", current_season_label()), kicker="SCHEDULE · 赛程"), unsafe_allow_html=True)
     if matches.empty:
         st.markdown(empty_state(
             "没有赛程数据", "data/analysis/matches.csv 为空或缺失。",
@@ -2611,6 +2611,29 @@ def render_ops() -> None:
 
 
 # ---------------- 壳：顶栏 + 模块轨 + 分发 ----------------
+LEAGUE_NAMES = {
+    "20260001": "2026 春季赛",
+    "20260002": "2026 挑战者杯",
+    "20260003": "2026 夏季赛",
+    "20260004": "2026 年度总决赛",
+}
+
+
+def current_season_label() -> str:
+    """按归档中最近已开赛场次推导当前赛季名（展示随数据同步，避免硬编码过期）。"""
+    try:
+        a = load_archive()
+        if a.empty or "start_time" not in a.columns:
+            return "2026 赛季"
+        started = a[pd.to_datetime(a["start_time"], errors="coerce") <= pd.Timestamp.now()]
+        if started.empty:
+            return "2026 赛季"
+        lid = str(started.sort_values("start_time")["league_id"].iloc[-1])
+        return LEAGUE_NAMES.get(lid, f"{lid[:4]} 赛季")
+    except Exception:
+        return "2026 赛季"
+
+
 def topbar_html(model: str) -> str:
     mon = load_statuses().get("monitor") or {}
     live_dot = '<span class="dot-live"></span>' if mon.get("state") == "live" else ""
@@ -2619,7 +2642,7 @@ def topbar_html(model: str) -> str:
         '<div class="brand-name">KPL 数据中心</div>'
         '<div class="brand-sub">KING PRO LEAGUE · DATA CONSTRUCTIVISM</div></div></div>'
         '<div class="topmeta">'
-        f'<span class="chip">{live_dot}2026 夏季赛</span>'
+        f'<span class="chip">{live_dot}{_esc(current_season_label())}</span>'
         f'<span class="chip">模型 <b>{_esc(model)}</b></span>'
         f'<span class="chip mono">数据时钟 {latest_data_time()}</span>'
         '</div></div>'
