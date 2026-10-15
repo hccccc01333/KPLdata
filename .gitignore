@@ -54,6 +54,7 @@ data/processed/**
 
 # 实时快照与预测时间线（约 GB 级）
 data/realtime/raw_snapshots/
+data/realtime/frames/
 data/realtime/backup_snapshots/
 data/realtime/predictions/
 data/realtime/datasets/clean/
@@ -90,17 +91,25 @@ app/
 
 # 本地调试脚本
 scripts/_*.py
+scripts/dashboard_legacy_*.py
 scripts/train_realtime_model.py
 scripts/train_realtime_model_v6.py
 scripts/train_realtime_model_v7.py
 scripts/train_realtime_model_v8.py
 scripts/ablate_v9_features.py
 
+# 根目录临时会话脚本（探针 / 截图 / 交互测试）
+/.t_*.py
+/.shot_*.py
+/.interact_*.py
+
 # 运行时状态（本机监控产生）
-data/realtime/daemon_status.json
 data/realtime/monitor_status.json
 data/realtime/backfill_status.json
 data/realtime/ablation_v10_report.json
 
 # 分析宽表样例（体积/噪音大，非核心展示）
 data/analysis/
+
+# 本地映射表（手工维护；缺省时界面显示「待映射」）
+data/meta/

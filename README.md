@@ -38,12 +38,11 @@
 |------|------|------|
 | 官方核心层 | `scripts/kpl_official_core.py` | 赛程、快照解析、特征、预测、复盘、健康报告 |
 | 赛程归档 | `scripts/build_schedule_archive.py` | 跨赛季赛程索引 |
-| 自动守护 | `scripts/auto_schedule_daemon.py` | 刷新赛程、等待开赛、实时采集 |
 | 历史回补 | `scripts/backfill_history.py` | 按赛程批量回补对局 |
 | 模型训练 | `scripts/train_realtime_model_v9.py` | clean 真实优先 + 因果特征 + 分阶段模型 |
 | 诚实回测 | `scripts/backtest_realtime_v9.py` | holdout 分阶段 Brier / ECE + 验收门禁 |
-| 自动监控 | `scripts/official_match_monitor.py` | 识别对局、落盘快照与预测 |
-| Dashboard | `scripts/dashboard.py` | 赛事中心 / 实时中控 / 复盘 / 战队 / 数据面板 |
+| 自动监控 | `scripts/official_match_monitor.py` | 赛程刷新、等待开赛、识别对局、异步采集与预测 |
+| Dashboard | `scripts/dashboard.py` | 赛事中心 / 实时中控 / 单局复盘 / 战队画像 / 选手排行 / 英雄 Meta / 数据健康 |
 
 ---
 
@@ -72,8 +71,8 @@ pip install -r requirements.txt
 python scripts/train_realtime_model_v9.py
 python scripts/backtest_realtime_v9.py --gates
 
-# 监控采集
-python scripts/official_match_monitor.py --interval 15
+# 监控采集（或双击 start_monitor.bat 常驻运行）
+python scripts/official_match_monitor.py --interval 3
 
 # Dashboard
 streamlit run scripts/dashboard.py
@@ -87,11 +86,17 @@ Dashboard 默认：`http://localhost:8501`
 
 | 页面 | 能力 |
 |------|------|
-| 赛事中心 | 赛程、比赛 ID、本地已采集 BO |
-| 实时中控 | 胜率曲线、经济/击杀/推塔、领先原因 |
-| 历史复盘 | 按赛段/战队/赛局下钻 |
-| 战队分析 | 胜率、经济差、推塔差、雷达与趋势 |
-| 数据面板 | 模型版本、快照质量、监控状态 |
+| 赛事中心 | 赛程、采集覆盖、赛段分布、复盘入口 |
+| 实时中控 | 胜率曲线、经济/击杀/推塔、金差护栏、与金差先验对标 |
+| 单局复盘 | 战报、BP 看板、胜率与金差、分路经济、选手面板、事件归因 |
+| 战队画像 | 积分榜（Wilson CI）、风格雷达、H2H、最近对局 |
+| 选手排行 | 按位置/指标的选手榜（官方统计字段） |
+| 英雄 Meta | 出场/禁用/胜率（Wilson CI）、三人核心组合 |
+| 数据健康 | 监控/回补/训练状态、模型 Holdout 指标、覆盖率与缺口 |
+
+界面遵循 **「动态数据构成主义」** 设计语言（`docs/product/00-设计系统与UI规范.md`）：
+浅色工作台 + 深蓝 `#005691` 结构色、橙 `#FF8C00` 主强调、全站 Roboto Mono 等宽字体、
+非对称网格与几何块、克制动效；蓝/红方全站一致，所有 KPI 带来源标签（官方 / 代理 / 估算 / 舆情）。
 
 ---
 
@@ -128,6 +133,7 @@ Dashboard 默认：`http://localhost:8501`
 ## 仓库说明
 
 - 大体积快照、模型权重已由 `.gitignore` 排除，仓库以**代码 + 文档 + 指标样例**为主  
+- 产品需求文档矩阵（总纲 + P01–P20 PRD）见 `docs/product/`  
 - 本地采集数据后即可完整复现训练、回测与 Dashboard  
 
 ---

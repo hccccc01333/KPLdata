@@ -2,7 +2,7 @@
 KPL 实时预测薄封装（统一走 kpl_official_core）
 
 生产采集请用：
-    python scripts/official_match_monitor.py --interval 15
+    python scripts/official_match_monitor.py --interval 3
 
 本脚本仅提供单局离线/一次性预测，避免再维护第二套特征工程。
 """
