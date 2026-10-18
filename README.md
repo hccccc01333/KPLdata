@@ -203,6 +203,11 @@ Dashboard 默认：`http://localhost:8501`
 切分：train 145 局 / calib 20 局 / test 20 局，按时间、按整局切，三段不重叠。
 校准器（isotonic / Platt）、early clip、校准器方法全部只在 calib 段拟合；test 段只报指标。
 
+> **AUC 有两个口径，别混。** 上表的 AUC 是 **test 段（训练与校准都没碰过）** 算出、站点发布的那个；
+> `data/realtime/train_status.json` 里的 `auc`（≈0.936）是 **train 段内的模型选型诊断分**，
+> 只在训练流程里用来挑模型，不能当模型能力——它是在模型见过的数据上算的。
+> 站点 `assets/data.js` 的 `model.auc` 现取自 test 段，同时在 `model.trainDiagAuc` 单独保留诊断分并注明口径。
+
 > **这次数字比旧版"变差"了，原因值得写清楚。**
 > 旧口径是「最近 8 局，且这 8 局同时被用来拟合校准器」，报的是 all Brier 0.143 / early 0.117 / Acc 0.79。
 > 那个数字有两个问题：① 校准是样本内的；② 只有 8 局，而 8 局恰好偏容易。
