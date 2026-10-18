@@ -83,7 +83,10 @@ def git_push_site(msg: str) -> bool:
             print("  git:", out[-1][:110])
         return r.returncode, (out[-1] if out else "")
 
-    run(["git", "add", "-u"])
+    # 只暂存"生成物"：assets/ 目录 + sync_readme_stats.py 重写的 README。
+    # 不带 pathspec 的 `git add -u` 会把 build_*.py / *.html 等源码改动一起扫进
+    # data update 提交（2026-10-18 已实际发生两次），源码改动必须由人单独提交。
+    run(["git", "add", "-u", "--", "assets", "README.md"])
     if (SITE_DIR / "assets").exists():
         run(["git", "add", "assets"])
     run(["git", "-c", "user.name=hccccc01333",
