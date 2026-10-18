@@ -240,7 +240,18 @@ def run_backtest(
     reference_artifact: dict | None = None,
 ) -> dict:
     battles = list_labeled_real_battles(from_raw=from_raw)
-    holdout, _ = select_holdout(battles, holdout_n)
+    # 优先用模型 artifact 里记录的 test 段（V12 三段隔离）：
+    # 训练时校准器只看 calib、指标只看 test，回测必须评同一批 test 局，
+    # 否则"训练报的指标"和"回测评的指标"是两批样本，对不上账。
+    split_ids = {str(x) for x in (artifact.get("holdout_battles") or [])}
+    if split_ids:
+        holdout = [b for b in battles if b["battle_id"] in split_ids]
+        if verbose:
+            print(f"test split from artifact: {len(holdout)} battles")
+    else:
+        holdout, _ = select_holdout(battles, holdout_n)
+        if verbose:
+            print("artifact 无 test 切分信息，退回按时间取最后 N 局")
     if verbose:
         root = resolve_snapshot_root(from_raw=from_raw)
         print(f"snapshot root: {root} (from_raw={from_raw})")

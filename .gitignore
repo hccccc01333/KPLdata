@@ -60,6 +60,8 @@ data/realtime/predictions/
 data/realtime/datasets/clean/
 data/realtime/datasets/quarantine/
 data/realtime/logs/
+# 重放缓存按模型指纹失效，属于本地产物；报告与 baseline 才需要入库
+data/realtime/replay_cache/
 data/realtime/*.csv
 !data/realtime/schedule_archive.csv
 !data/realtime/datasets/clean_manifest.csv

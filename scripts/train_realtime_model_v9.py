@@ -41,6 +41,7 @@ from sklearn.preprocessing import StandardScaler
 from kpl_official_core import (
     FeatureBuilder,
     MODEL_DIR,
+    POSITION_CN,
     POSITIONS,
     RAW_DIR,
     REALTIME_DIR,
@@ -132,6 +133,16 @@ SCALING_ALPHA = {
     "hurt": 1.12,
 }
 HOLDOUT_REAL_BATTLES = 8
+# --- V12 硬隔离：train / calib / test 三段按时间切，互不重叠 ---
+# 旧版只有一段 8 局的 holdout，校准器（isotonic/platt）、early clip、
+# midlate 校准器选择全部在这 8 局上拟合，再用同一批 8 局报指标 —— 校准是样本内的，
+# 指标是选择后的，两个偏差同向叠加。改成三段后：
+#   train   拟合基模型（early RF / midlate voting）
+#   calib   只用来拟合校准器 + 选 clip + 选校准器方法（指标不对外报）
+#   test    只用来报指标，训练与校准都碰不到
+CALIB_REAL_BATTLES = 20
+TEST_REAL_BATTLES = 20
+SPLIT_SEED = 42
 REAL_WEIGHT = 2.5
 SIM_WEIGHT = 0.55
 SIM_LATE_WEIGHT = 0.18  # minute_bin >= 10
@@ -259,6 +270,23 @@ def team_wr_for_battle(
         camp1: prior.get(camp1, fallback.get(camp1, 0.5)),
         camp2: prior.get(camp2, fallback.get(camp2, 0.5)),
     }
+
+
+def ensure_position_column(players: pd.DataFrame) -> pd.DataFrame:
+    """players.csv 必须带数字 position（分路聚合用）。老导出只有 position_desc 文本，
+    这里按中文名反推一次，避免"换个导出方式就 KeyError"（2026-10 踩过）。"""
+    if "position" in players.columns:
+        return players
+    if "position_desc" not in players.columns:
+        raise KeyError("players.csv 既无 position 也无 position_desc，无法按分路聚合")
+    desc_to_id = {cn: pid for pid, en in POSITIONS.items() for cn in [POSITION_CN.get(en)]}
+    out = players.copy()
+    out["position"] = out["position_desc"].map(desc_to_id)
+    missing = int(out["position"].isna().sum())
+    if missing:
+        raise ValueError(f"{missing} 行 position_desc 无法映射到分路 id")
+    out["position"] = out["position"].astype(int)
+    return out
 
 
 def aggregate_position_data(players: pd.DataFrame) -> pd.DataFrame:
@@ -667,6 +695,36 @@ def choose_midlate_calibrator(holdout_df: pd.DataFrame, cal_early, early_clip: t
     return best["cal"], best_name, {k: {kk: vv for kk, vv in v.items() if kk != "cal"} for k, v in scores.items()}
 
 
+def split_train_calib_test(
+    labeled: list[dict],
+    n_calib: int = CALIB_REAL_BATTLES,
+    n_test: int = TEST_REAL_BATTLES,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """把按时间升序的 labeled 切成 train / calib / test 三段（整局切，不按快照切）。
+
+    - test  取时间上最后的 n_test 局 —— 模拟"未来"；
+    - calib 取 test 之前紧邻的 n_calib 局 —— 只用于拟合校准器 / 选 clip / 选校准器方法；
+    - train 剩下全部。
+
+    为什么按时间而不是随机：局内快照高度相关，随机切会让同一局的时间相邻帧
+    分落 train/test；按整局 + 按时间切，测试集才是真正的"没见过的未来比赛"。
+    """
+    n = len(labeled)
+    if n < 12:
+        raise RuntimeError(f"标注局太少（{n} 局），无法切 train/calib/test 三段")
+    # 上限：每段最多占 1/4，保证 train 至少留一半
+    n_test = max(2, min(n_test, n // 4))
+    n_calib = max(2, min(n_calib, n // 4))
+    if n - n_test - n_calib < max(8, n // 2):
+        # 局数不够时等比收缩，保证 train 占大头
+        n_test = max(2, n // 5)
+        n_calib = max(2, n // 5)
+    train = labeled[: n - n_test - n_calib]
+    calib = labeled[n - n_test - n_calib : n - n_test]
+    test = labeled[n - n_test :]
+    return train, calib, test
+
+
 def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
     """Train V11 phase-blend model; keep function name for monitor compatibility."""
     if verbose:
@@ -684,21 +742,31 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
     early_cols = load_early_feature_columns()
 
     labeled = list_labeled_real_battles(from_raw=from_raw)
-    n_holdout = min(HOLDOUT_REAL_BATTLES, max(1, len(labeled) // 4)) if labeled else 0
-    holdout_battles = labeled[-n_holdout:] if n_holdout else []
-    holdout_ids = {b["battle_id"] for b in holdout_battles}
-    train_labeled = [b for b in labeled if b["battle_id"] not in holdout_ids]
+    # 三段硬隔离：calib 只拟合校准器，test 只报指标
+    train_labeled, calib_battles, test_battles = split_train_calib_test(labeled)
+    calib_ids = {b["battle_id"] for b in calib_battles}
+    test_ids = {b["battle_id"] for b in test_battles}
+    held_out_ids = calib_ids | test_ids
+    # 样本加权只认 train 段：calib/test 的胜负标签不能回流到训练里
     comeback_ids, swing_ids = detect_swing_sets(train_labeled)
     if verbose:
         print(
-            f"real labeled: {len(labeled)}, holdout: {len(holdout_ids)}, "
-            f"comeback_train: {len(comeback_ids)}, swing_train: {len(swing_ids)}"
+            f"real labeled: {len(labeled)} → train {len(train_labeled)} / "
+            f"calib {len(calib_ids)} / test {len(test_ids)}"
+        )
+        print(
+            f"  train snaps: {sum(len(b['snapshots']) for b in train_labeled):,} · "
+            f"calib snaps: {sum(len(b['snapshots']) for b in calib_battles):,} · "
+            f"test snaps: {sum(len(b['snapshots']) for b in test_battles):,}"
+        )
+        print(
+            f"  comeback_train: {len(comeback_ids)}, swing_train: {len(swing_ids)}"
         )
         print(f"early features ({len(early_cols)}): {early_cols}")
 
-    pos_df = aggregate_position_data(players)
-    sim_df = simulate_from_final_battles(battles, pos_df, per_battle_wr, fallback_wr, exclude_ids=holdout_ids)
-    real_df = extract_real_snapshots(per_battle_wr, fallback_wr, exclude_ids=holdout_ids, from_raw=from_raw)
+    pos_df = aggregate_position_data(ensure_position_column(players))
+    sim_df = simulate_from_final_battles(battles, pos_df, per_battle_wr, fallback_wr, exclude_ids=held_out_ids)
+    real_df = extract_real_snapshots(per_battle_wr, fallback_wr, exclude_ids=held_out_ids, from_raw=from_raw)
     if verbose:
         print(f"sim snapshots: {len(sim_df):,}, real snapshots: {len(real_df):,}")
 
@@ -769,32 +837,37 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
     if verbose:
         print("VotingMidlate (mixed secondary)", scores["VotingMidlate"])
 
-    # Holdout blend + phase calibrators (V11: Platt/isotonic chosen by mid Brier)
-    holdout_raw = collect_holdout_blend_probs(
-        model_early, early_cols, model_midlate, V9_FEATURE_COLUMNS, fallback_wr, holdout_battles
+    # --- 校准：只在 calib 段拟合；指标：只在 test 段算 ---
+    # 旧版把这两件事放在同一批 8 局上，等于校准器看过答案再考同一张卷子。
+    calib_raw = collect_holdout_blend_probs(
+        model_early, early_cols, model_midlate, V9_FEATURE_COLUMNS, fallback_wr, calib_battles
     )
-    if not holdout_raw.empty:
-        early_rows = holdout_raw[holdout_raw["minute_bin"] <= 8]
+    test_raw = collect_holdout_blend_probs(
+        model_early, early_cols, model_midlate, V9_FEATURE_COLUMNS, fallback_wr, test_battles
+    )
+    if not calib_raw.empty and not test_raw.empty:
+        early_rows = calib_raw[calib_raw["minute_bin"] <= 8]
         cal_early = (
             fit_calibrator(early_rows["prob_early"].values, early_rows["label"].values, method="isotonic")
             if len(early_rows)
             else None
         )
         if cal_early is None:
-            cal_early = fit_calibrator(holdout_raw["prob_early"].values, holdout_raw["label"].values, method="platt")
+            cal_early = fit_calibrator(calib_raw["prob_early"].values, calib_raw["label"].values, method="platt")
 
-        # Early clip selection without midlate cal first
-        p_tmp = finalize_holdout_probs(holdout_raw, cal_early, None, (0.02, 0.98), use_gold_guard=True)
-        p_clip_tmp = finalize_holdout_probs(holdout_raw, cal_early, None, EARLY_PROB_CLIP, use_gold_guard=True)
-        early_mask = holdout_raw["minute_bin"].values <= 8
-        y_all = holdout_raw["label"].values
+        # early clip 也只在 calib 段上选
+        p_tmp = finalize_holdout_probs(calib_raw, cal_early, None, (0.02, 0.98), use_gold_guard=True)
+        p_clip_tmp = finalize_holdout_probs(calib_raw, cal_early, None, EARLY_PROB_CLIP, use_gold_guard=True)
+        early_mask = calib_raw["minute_bin"].values <= 8
+        y_all = calib_raw["label"].values
         b_no = float(brier_score_loss(y_all[early_mask], p_tmp[early_mask])) if early_mask.any() else 1.0
         b_yes = float(brier_score_loss(y_all[early_mask], p_clip_tmp[early_mask])) if early_mask.any() else 1.0
         use_early_clip = b_yes <= b_no
         early_clip = EARLY_PROB_CLIP if use_early_clip else (0.02, 0.98)
 
-        cal_midlate, mid_cal_name, mid_cal_diag = choose_midlate_calibrator(holdout_raw, cal_early, early_clip)
-        final_probs = finalize_holdout_probs(holdout_raw, cal_early, cal_midlate, early_clip, use_gold_guard=True)
+        cal_midlate, mid_cal_name, mid_cal_diag = choose_midlate_calibrator(calib_raw, cal_early, early_clip)
+        # ↓ 以下只用 test 段
+        final_probs = finalize_holdout_probs(test_raw, cal_early, cal_midlate, early_clip, use_gold_guard=True)
         clip_diag = {
             "early_brier_no_clip": b_no,
             "early_brier_clip": b_yes,
@@ -803,24 +876,29 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
             "midlate_cal_diag": mid_cal_diag,
         }
         holdout_metrics = evaluate_phase_metrics(
-            holdout_raw["minute"].values, holdout_raw["label"].values, final_probs
+            test_raw["minute"].values, test_raw["label"].values, final_probs
         )
-        holdout_comeback, holdout_swing = detect_swing_sets(holdout_battles)
+        # calib 段的指标只作诊断（用来看校准前后有没有变差），不对外报
+        calib_probs = finalize_holdout_probs(calib_raw, cal_early, cal_midlate, early_clip, use_gold_guard=True)
+        calib_metrics = evaluate_phase_metrics(
+            calib_raw["minute"].values, calib_raw["label"].values, calib_probs
+        )
+        holdout_comeback, holdout_swing = detect_swing_sets(test_battles)
         if holdout_comeback:
-            mask_c = holdout_raw["battle_id"].isin(holdout_comeback).values
+            mask_c = test_raw["battle_id"].isin(holdout_comeback).values
             comeback_metrics = evaluate_phase_metrics(
-                holdout_raw["minute"].values[mask_c],
-                holdout_raw["label"].values[mask_c],
+                test_raw["minute"].values[mask_c],
+                test_raw["label"].values[mask_c],
                 final_probs[mask_c],
             )
         else:
             comeback_metrics = {}
         per_battle_acc = []
-        for bid in holdout_raw["battle_id"].unique():
-            m = holdout_raw["battle_id"].values == bid
-            y = holdout_raw["label"].values[m]
+        for bid in test_raw["battle_id"].unique():
+            m = test_raw["battle_id"].values == bid
+            y = test_raw["label"].values[m]
             p = final_probs[m]
-            ym = holdout_raw["minute_bin"].values[m]
+            ym = test_raw["minute_bin"].values[m]
             acc = float(((p >= 0.5) == y).mean()) if len(y) else 0.0
             late_acc = float(((p[ym >= 8] >= 0.5) == y[ym >= 8]).mean()) if np.any(ym >= 8) else acc
             per_battle_acc.append(
@@ -839,6 +917,7 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
         early_clip = EARLY_PROB_CLIP
         use_early_clip = True
         holdout_metrics = {}
+        calib_metrics = {}
         comeback_metrics = {}
         per_battle_acc = []
         holdout_comeback = set()
@@ -847,12 +926,19 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
         mid_cal_name = "none"
 
     if verbose and holdout_metrics:
-        print("Holdout real (headline):")
+        print("Test real (headline, 训练与校准都没碰过):")
         for phase, m in holdout_metrics.items():
             print(
                 f"  {phase:5s} n={m['n']:4d} Brier={m['brier']:.4f} ECE={m['ece']:.4f} "
                 f"Acc={m['accuracy']:.3f} AUC={m['auc']:.3f}"
             )
+        if calib_metrics:
+            print("Calib real (只作诊断，不对外报):")
+            for phase, m in calib_metrics.items():
+                print(
+                    f"  {phase:5s} n={m['n']:4d} Brier={m['brier']:.4f} "
+                    f"Acc={m['accuracy']:.3f}"
+                )
         print(f"early_clip={early_clip} use={use_early_clip} cal_early={cal_early is not None} cal_mid={cal_midlate is not None} diag={clip_diag}")
         if comeback_metrics:
             print("comeback subset:", comeback_metrics.get("all"))
@@ -860,8 +946,8 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
             print("worst battles:", per_battle_acc[:3])
 
     artifact = {
-        "version": "V11",
-        "model_name": "VotingV11 EarlyRF + MidRFStrong",
+        "version": "V12",
+        "model_name": "VotingV12 EarlyRF + MidRFStrong",
         "model": model_midlate,  # legacy fallback
         "model_early": model_early,
         "model_midlate": model_midlate,
@@ -879,8 +965,18 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
         "team_winrate": fallback_wr,
         "metrics": scores,
         "holdout_real": holdout_metrics,
+        "calib_real": calib_metrics,
         "holdout_comeback": comeback_metrics,
-        "holdout_battles": sorted(holdout_ids),
+        "holdout_battles": sorted(test_ids),
+        "calib_battles": sorted(calib_ids),
+        "split": {
+            "scheme": "time-ordered battle-level 3-way (train/calib/test)",
+            "train_battles": len(train_labeled),
+            "calib_battles": len(calib_ids),
+            "test_battles": len(test_ids),
+            "test_snapshots": int(len(test_raw)) if not test_raw.empty else 0,
+            "calib_snapshots": int(len(calib_raw)) if not calib_raw.empty else 0,
+        },
         "comeback_train_battles": sorted(comeback_ids),
         "swing_train_battles": sorted(swing_ids),
         "worst_holdout_battles": per_battle_acc[:5],
@@ -891,11 +987,13 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
         "shrinkage_diag": clip_diag if holdout_metrics else {},
         "trained_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "notes": [
+            "V12 hard isolation: train/calib/test are time-ordered, battle-level, disjoint.",
+            "Calibrators (isotonic/Platt), early clip and midlate-calibrator choice are fit on CALIB only.",
+            "Reported metrics come from TEST only — never touched by fitting or selection.",
             "V11 gold consistency guard on mid/late clash.",
             "Causal FE: roll windows, momentum, lane crush, obj-tower convert, hurt concentration.",
             "Model select: early=RF-only(220,d7,leaf12); midlate=RF-strong voting (RF 500/d12).",
             "Dropped legacy lord(big_dragon) from objective_score; prophet/shadow used instead.",
-            "Midlate calibrator chosen by holdout mid Brier (Platt/isotonic/none).",
             "Comeback + swing + mid-minute sample upweight; no early label-flip.",
         ],
     }
@@ -908,7 +1006,7 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
         {
             "state": "ready",
             "reason": "manual_train",
-            "version": "V11",
+            "version": "V12",
             "model_name": artifact["model_name"],
             "early_model": "RF-only",
             "trained_at": artifact["trained_at"],
@@ -923,6 +1021,11 @@ def train_v9_model(verbose: bool = True, *, from_raw: bool = False) -> dict:
             "comeback_brier": comeback_all.get("brier"),
             "worst_battle_acc": per_battle_acc[0]["acc"] if per_battle_acc else None,
             "holdout_battles": artifact["holdout_battles"],
+            "calib_battles": artifact["calib_battles"],
+            "split": artifact["split"],
+            "holdout_n_battles": len(test_ids),
+            "holdout_n_snapshots": int(holdout_metrics.get("all", {}).get("n") or 0),
+            "calib_n_battles": len(calib_ids),
             "early_prob_clip": list(early_clip),
             "use_time_shrinkage": False,
             "use_gold_guard": True,

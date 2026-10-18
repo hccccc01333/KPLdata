@@ -524,6 +524,8 @@ def _emit_prediction(ctx: PipelineContext, frame: CollectedFrame) -> None:
         "tempo_swing_score": round(float(feats.get("tempo_swing_score", 0)), 4),
         "top_factor": explain[0]["factor"] if explain else "",
         "gold_guard_applied": int(gold_guard_applied),
+        "model_version": artifact.get("version") or "",
+        "model_trained_at": artifact.get("trained_at") or "",
         "status": snap.get("status"),
         "win_camp": snap.get("win_camp"),
     }

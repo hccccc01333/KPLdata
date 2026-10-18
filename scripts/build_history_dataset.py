@@ -26,12 +26,16 @@ if sys.platform == "win32":
 import pandas as pd
 
 from kpl_official_core import (
+    POSITIONS,
     PROJECT_ROOT,
     ScheduleCenter,
     detect_events,
     load_battle_jsons,
     load_battle_players,
 )
+
+# raw payload 里的 position_key（英文）→ 官方数字编码（训练脚本按数字分路聚合）
+POS_KEY_TO_ID = {v: k for k, v in POSITIONS.items()}
 
 
 ANALYSIS_DIR = PROJECT_ROOT / "data" / "analysis"
@@ -195,6 +199,9 @@ def build():
                         "hero_name": p.get("hero_name"),
                         "hero_icon": p.get("hero_icon"),
                         "camp": p.get("camp"),
+                        # position 是训练脚本聚合分路用的数字编码；position_desc 给前端展示。
+                        # 只写 desc 会让 train_realtime_model_v9 直接 KeyError（2026-10 踩过）。
+                        "position": POS_KEY_TO_ID.get(str(p.get("position_key") or "").strip()),
                         "position_desc": p.get("position_name"),
                         "kill_num": kill,
                         "death_num": death,
@@ -202,6 +209,9 @@ def build():
                         "kda": (kill + assist) / death if death else float(kill + assist),
                         "gold": p.get("gold"),
                         "participation_rate": p.get("participation_rate"),
+                        # 训练侧算 hurt_conc_diff 用的是总量，不是占比，两个都要留
+                        "hurt_to_hero_total": p.get("hurt_to_hero_total"),
+                        "be_hurt_by_hero_total": p.get("be_hurt_by_hero_total"),
                         "hurt_to_hero_total_rate": p.get("hurt_to_hero_total_rate"),
                         "be_hurt_by_hero_total_rate": p.get("be_hurt_by_hero_total_rate"),
                         "mvp_score": p.get("mvp_score"),

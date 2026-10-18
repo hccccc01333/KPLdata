@@ -1,0 +1,93 @@
+{
+  "generatedAt": "2026-10-18 18:54:26",
+  "model": {
+    "version": "V12",
+    "trained_at": "2026-10-18 13:42:43",
+    "fp": "V12|2026-10-18 13:42:43|60"
+  },
+  "note": "live = 直播期写入的预测 CSV（可能是旧模型）；replay = 当前模型对同一批快照逐帧重算。两者不是同一件事，本报告的用途是量化差异并锁住它，不是证明某一方正确。",
+  "summary": {
+    "battles": 178,
+    "aligned_frames": 2501,
+    "median_abs_delta": 0.1472,
+    "p90_abs_delta": 0.3853,
+    "max_abs_delta": 0.96,
+    "direction_agree": 0.8021,
+    "brier_live": 0.2168,
+    "brier_replay": 0.134,
+    "brier_gap": -0.0828,
+    "brier_frames": 2501,
+    "checkpoints": {
+      "8": {
+        "n": 159,
+        "mean_abs_delta": 0.1838,
+        "live_hit": 0.7296,
+        "replay_hit": 0.8553
+      },
+      "12": {
+        "n": 141,
+        "mean_abs_delta": 0.1352,
+        "live_hit": 0.8723,
+        "replay_hit": 0.9007
+      },
+      "16": {
+        "n": 68,
+        "mean_abs_delta": 0.1581,
+        "live_hit": 0.7941,
+        "replay_hit": 0.8676
+      }
+    },
+    "worst_battles": [
+      {
+        "battle_id": "48251408_23_1784792333",
+        "aligned_n": 12,
+        "median_delta": 0.4415,
+        "max_delta": 0.8585
+      },
+      {
+        "battle_id": "48251408_9_1785403858",
+        "aligned_n": 13,
+        "median_delta": 0.4415,
+        "max_delta": 0.96
+      },
+      {
+        "battle_id": "48251408_15_1784702518",
+        "aligned_n": 21,
+        "median_delta": 0.4065,
+        "max_delta": 0.96
+      },
+      {
+        "battle_id": "48251408_43_1783237005",
+        "aligned_n": 16,
+        "median_delta": 0.4026,
+        "max_delta": 0.6814
+      },
+      {
+        "battle_id": "836780560_13_1781939308",
+        "aligned_n": 15,
+        "median_delta": 0.3963,
+        "max_delta": 0.5837
+      }
+    ]
+  },
+  "by_split": {
+    "test": {
+      "frames": 296,
+      "brier_live": 0.3051,
+      "brier_replay": 0.1777,
+      "gap": -0.1274
+    },
+    "calib": {
+      "frames": 279,
+      "brier_live": 0.2041,
+      "brier_replay": 0.1502,
+      "gap": -0.0539
+    },
+    "train": {
+      "frames": 1926,
+      "brier_live": 0.2051,
+      "brier_replay": 0.125,
+      "gap": -0.0802
+    }
+  }
+}

@@ -731,6 +731,10 @@ PREDICTION_CSV_FIELDS = [
     "tempo_swing_score",
     "top_factor",
     "gold_guard_applied",
+    # 模型归因：没有这两列，事后无法回答"这条直播预测是哪个模型给的"，
+    # 重放 vs 直播的差异就永远分不清是"模型换了"还是"实时数据更脏"
+    "model_version",
+    "model_trained_at",
     "status",
     "win_camp",
 ]

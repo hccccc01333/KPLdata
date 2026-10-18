@@ -20,10 +20,22 @@ python -m compileall -q scripts
 - 在数据格式满足脚本预期后，才尝试：
 
 ```bash
-python scripts/train_realtime_model_v9.py
-python scripts/backtest_realtime_v9.py --gates
+python scripts/train_realtime_model_v9.py          # 三段隔离训练，写 output/models/ + train_status.json
+python scripts/backtest_realtime_v9.py --gates     # 只评 artifact 里记录的 test 段
+python scripts/regression_replay_vs_live.py --baseline   # 首次：冻结「重放 vs 直播」偏差分布
+python scripts/regression_replay_vs_live.py              # 之后：只比漂移，超容忍度 exit 1
 streamlit run scripts/dashboard.py
 ```
+
+几点会影响结果能否对上的约定：
+
+- **切分**：train / calib / test 按时间、按整局切三段（`split_train_calib_test`），校准器只在 calib 拟合，
+  test 只报指标。改动样本量或时间范围会让指标不可比。
+- **回测口径**：`backtest_realtime_v9.py` 优先读 artifact 的 `holdout_battles`，保证与训练报的是同一批局。
+- **重放回归**：`regression_replay_vs_live.py` 有缓存（`data/realtime/replay_cache/`，按模型指纹失效）。
+  首次全量约 10 分钟（6 进程），之后读缓存秒出。baseline 少于 20 局不写，避免空样本变成假门禁。
+- **数据字段**：`data/processed/players.csv` 需要数字 `position` 与 `hurt_to_hero_total`；
+  若由旧版导出缺少，跑 `python scripts/_patch_players_position.py` 回 raw 补齐。
 
 训练模型通常写入 `output/models/`，此处没有提供可直接使用的预训练模型；Dashboard 在缺少数据/模型时可能只显示空视图或无法执行部分功能。具体输入字段参见 `docs/数据字典.md` 和源码。
 
