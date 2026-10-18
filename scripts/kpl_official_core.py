@@ -4245,13 +4245,68 @@ def data_health_report(battles: list[dict[str, Any]], schedule_matches: list[Sch
     }
 
 
+# ---------------------------------------------------------------------------
+# 监控状态词表（单一事实源）
+# 监控脚本（official_match_monitor）写、Dashboard 读；两边必须用同一套 canonical 状态，
+# 否则“采集中”会被前端当成“状态异常”（历史 Bug：写 running、判 live）。
+# ---------------------------------------------------------------------------
+MONITOR_STATE_CANONICAL = {
+    "live",             # 正在采集本局快照
+    "waiting_start",    # 等待开赛 / 暂无可用赛程
+    "waiting_battle",   # 已开赛，等待 BP / 首帧
+    "battle_finished",  # 本局打完、等待下一局
+    "training",         # 后台重训（采集不中断）
+    "day_complete",     # 当日赛程完成
+    "stopped",          # 被手动停止
+    "error",            # 采集 / 接口 / 训练异常
+    "not_started",      # 从未启动
+}
+# 监控脚本历史写法 → canonical
+MONITOR_STATE_ALIASES = {
+    "running": "live",
+    "finished": "battle_finished",
+    "waiting_schedule": "waiting_start",
+    "waiting_next_match": "waiting_start",
+    "starting": "waiting_battle",
+    "ready": "waiting_battle",
+    "api_error": "error",
+    "train_error": "error",
+    "status_error": "error",
+}
+# 这些状态表示“链路是活的、可以信任当前展示”，其余按陈旧/异常处理
+MONITOR_STATE_HEALTHY = {"live", "waiting_start", "waiting_battle", "battle_finished", "training", "day_complete"}
+
+
+def normalize_monitor_state(raw_state: Any) -> str:
+    """把监控脚本写的 state 归一成 canonical 值（未知值原样返回）。"""
+    s = str(raw_state or "not_started")
+    s = MONITOR_STATE_ALIASES.get(s, s)
+    return s if s in MONITOR_STATE_CANONICAL else s
+
+
 def load_monitor_status() -> dict[str, Any]:
+    """读取 monitor_status.json，并统一到 canonical 状态词表。
+
+    返回体额外带 state_raw（原始写法）与 is_live（是否真的在采集），前端统一读这两个字段。
+    """
     if not MONITOR_STATUS_FILE.exists():
-        return {"state": "not_started", "message": "监控脚本尚未运行"}
+        return {"state": "not_started", "state_raw": "not_started", "is_live": False,
+                "message": "监控脚本尚未运行"}
     try:
-        return json.loads(MONITOR_STATUS_FILE.read_text(encoding="utf-8"))
+        raw = json.loads(MONITOR_STATUS_FILE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        return {"state": "status_error", "message": str(exc)}
+        return {"state": "error", "state_raw": "status_error", "is_live": False, "message": str(exc)}
+    if not isinstance(raw, dict):
+        return {"state": "error", "state_raw": "status_error", "is_live": False,
+                "message": "monitor_status.json 结构异常"}
+    state_raw = str(raw.get("state") or "not_started")
+    state = normalize_monitor_state(state_raw)
+    out = dict(raw)
+    out["state_raw"] = state_raw
+    out["state"] = state
+    out["is_live"] = state == "live"
+    out["healthy"] = state in MONITOR_STATE_HEALTHY
+    return out
 
 
 def load_kpl_knowledge(path: Path = KPL_KNOWLEDGE_PATH) -> dict[str, Any]:

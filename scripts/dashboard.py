@@ -1175,7 +1175,7 @@ def read_status(path: Path) -> dict:
         return {"state": "status_error"}
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=5, show_spinner=False)  # 状态文件很小，5s 就够；实时中控要靠它判断链路是否活着
 def load_statuses() -> dict[str, dict]:
     return {
         "monitor": load_monitor_status(),
@@ -1184,7 +1184,7 @@ def load_statuses() -> dict[str, dict]:
     }
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=10, show_spinner=False)
 def latest_data_time() -> str:
     best = None
     for d in [PREDICTION_DIR, RAW_DIR]:
@@ -1210,7 +1210,7 @@ def load_standings() -> pd.DataFrame:
     return build_proxy_standings(filter_teams_window(teams, mode="all"))
 
 
-@st.cache_data(ttl=120, show_spinner=False)
+@st.cache_data(ttl=30, show_spinner=False)
 def live_battle_options() -> list[dict]:
     rows: set[str] = set()
     if PREDICTION_DIR.exists():
@@ -1226,7 +1226,7 @@ def live_battle_options() -> list[dict]:
     return sub.sort_values(["date", "game_no"]).to_dict("records")
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=15, show_spinner=False)  # 实时页最长 15s 陈旧（原来是 300s）
 def live_payload(battle_id: str) -> dict:
     bench = build_winprob_benchmark(battle_id)
     last: dict = {}
@@ -1248,7 +1248,7 @@ def live_payload(battle_id: str) -> dict:
             "players": load_battle_players(battle_id), "bp": load_battle_bp(battle_id)}
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def drilldown_payload(battle_id: str) -> dict:
     bench = build_winprob_benchmark(battle_id)
     bp = load_battle_bp(battle_id)
@@ -1308,15 +1308,17 @@ def player_stats_table() -> pd.DataFrame:
 
 def status_light(name: str, state: str, sub: str = "") -> str:
     state = str(state or "")
-    if state in ("ready", "done", "live", "day_complete", "clean"):
+    if state in ("ready", "done", "live", "day_complete", "clean", "battle_finished", "training"):
         cls, label = "ls-on", {"ready": "READY", "done": "DONE", "live": "LIVE",
-                               "day_complete": "DONE", "clean": "OK"}.get(state, "OK")
+                               "day_complete": "DONE", "clean": "OK",
+                               "battle_finished": "本局结束", "training": "重训中"}.get(state, "OK")
         light_cls = " ls-live"
-    elif state in ("waiting_start", "pending", "not_started"):
-        cls, label = "ls-warn", {"waiting_start": "等待开赛", "pending": "等待中",
+    elif state in ("waiting_start", "waiting_battle", "pending", "not_started", "stopped"):
+        cls, label = "ls-warn", {"waiting_start": "等待开赛", "waiting_battle": "等待开局",
+                                 "pending": "等待中", "stopped": "已停止",
                                  "not_started": "未启动"}.get(state, "WAIT")
         light_cls = " ls-warn"
-    elif state in ("error", "status_error", "failed"):
+    elif state in ("error", "status_error", "failed", "api_error", "train_error"):
         cls, label = "ls-err", "异常"
         light_cls = " ls-err"
     else:
@@ -1463,32 +1465,90 @@ def render_schedule(matches: pd.DataFrame, battles: pd.DataFrame, archive: pd.Da
 
 
 # ---------------- 模块：实时中控 ----------------
+# 监控状态展示：canonical 状态（见 kpl_official_core.MONITOR_STATE_*）→ 徽标 + 说明
+MONITOR_STRIP_VIEW = {
+    "live": ("live", "采集中"),
+    "waiting_start": ("waiting_start", "等待开赛"),
+    "waiting_battle": ("waiting_start", "已开赛，等待 BP / 首帧"),
+    "battle_finished": ("ready", "本局已结束，等待下一局"),
+    "training": ("ready", "今日比赛已结束，后台重训中（采集不中断）"),
+    "day_complete": ("day_complete", "当日赛程已结束"),
+    "stopped": ("stale", "监控已停止"),
+    "error": ("error", "采集 / 接口异常"),
+    "not_started": ("stale", "监控脚本尚未运行"),
+}
+
+
+def monitor_freshness_sec(mon: dict) -> float | None:
+    """monitor_status.json 的 updated_at 距今多少秒（用于识别“写着 live 但其实卡住了”）。"""
+    stamp = str((mon or {}).get("updated_at") or "")
+    if not stamp:
+        return None
+    try:
+        return max(0.0, (datetime.now() - datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S")).total_seconds())
+    except (TypeError, ValueError):
+        return None
+
+
+def monitor_strip(mon: dict) -> str:
+    mon = mon or {}
+    state = str(mon.get("state") or "not_started")
+    tone, default_label = MONITOR_STRIP_VIEW.get(state, ("stale", state))
+    parts = [badge(tone, default_label)]
+    if mon.get("match"):
+        parts.append(f'<span class="mono">{_esc(mon.get("match"))}</span>')
+    meta = []
+    raw = str(mon.get("state_raw") or "")
+    if raw and raw != state:
+        meta.append(f"原始状态 {raw}")
+    if mon.get("minute") not in (None, ""):
+        try:
+            meta.append(f"第 {float(mon['minute']):.0f} 分钟")
+        except (TypeError, ValueError):
+            pass
+    if mon.get("camp1_win_prob") not in (None, ""):
+        try:
+            meta.append(f"camp1 胜率 {float(mon['camp1_win_prob']) * 100:.0f}%")
+        except (TypeError, ValueError):
+            pass
+    lag = mon.get("lag_sec")
+    if lag not in (None, ""):
+        try:
+            meta.append(f"延迟 {float(lag):+.0f}s")
+        except (TypeError, ValueError):
+            pass
+    age = monitor_freshness_sec(mon)
+    if age is not None:
+        meta.append(f"{age:.0f}s 前更新")
+    body = " ".join(parts)
+    if meta:
+        body += ' <span class="note-line">' + " · ".join(meta) + "</span>"
+    msg = str(mon.get("message") or "").strip()
+    if msg:
+        body += f'<div class="note-line">{_esc(msg)}</div>'
+    # 状态写着采集中、但状态文件长时间没更新 → 明确提示可能卡住，而不是静默展示旧数据
+    # 阈值 90s：采集间隔会随局势自适应（金差大时拉长），太紧会误报
+    if state == "live" and age is not None and age > 90:
+        body += (f'<div class="note-line" style="color:#C22">状态文件已 {age:.0f}s 未更新，'
+                 f'采集可能中断，请检查监控进程。</div>')
+    return panel_html("监控状态", body=body)
+
+
 def render_live() -> None:
+    """实时中控入口：内容放进 fragment 内定时自刷新，避免实时数据被 Streamlit 缓存冻住。"""
+    _live_module()
+
+
+@st.fragment(run_every="8s")
+def _live_module() -> None:
     st.markdown(section_head(
         "实时中控", "胜率主图 · 点击曲线任意时刻下钻 · 金差护栏",
         right=badge("估算", "胜率=估算"), kicker="LIVE · 实时"), unsafe_allow_html=True)
     statuses = load_statuses()
     mon = statuses.get("monitor") or {}
-    mon_state = str(mon.get("state", "not_started"))
-    if mon_state == "live":
-        strip = panel_html("监控状态", body=(
-            f'{badge("live")} <span class="mono">{_esc(mon.get("match") or "")}</span> '
-            f'<span class="note-line">更新于 {_esc(mon.get("updated_at") or "—")}</span>'))
-    elif mon_state == "waiting_start":
-        strip = panel_html("监控状态", body=(
-            f'{badge("waiting_start")} <span class="mono">{_esc(mon.get("match") or "")}</span> '
-            f'<span class="note-line">{_esc(mon.get("message") or "等待开赛")} · 更新于 '
-            f'{_esc(mon.get("updated_at") or "—")}</span>'))
-    elif mon_state == "day_complete":
-        strip = panel_html("监控状态", body=(
-            f'{badge("day_complete")} <span class="note-line">'
-            f'{_esc(mon.get("message") or "当日赛程完成")}</span>'))
-    else:
-        strip = panel_html("监控状态", body=(
-            f'{badge("stale", "STALE")} <span class="note-line">监控未运行或状态异常：'
-            f'{_esc(mon.get("message") or mon_state)}</span>'))
+    strip = monitor_strip(mon)
     st.markdown(strip, unsafe_allow_html=True)
-    if mon_state not in ("live", "day_complete"):
+    if not mon.get("is_live"):
         st.caption("当前无实时采集，下方为本地预测回放（历史对局），非实时数据。")
 
     options = live_battle_options()
@@ -1652,6 +1712,7 @@ def render_live() -> None:
             "关联事件": "；".join(t.get("events") or ["—"]),
         } for t in turns[:8]]
         data_table(pd.DataFrame(turn_rows))
+
 
 
 # ---------------- 模块：单局复盘 ----------------
@@ -2636,7 +2697,7 @@ def current_season_label() -> str:
 
 def topbar_html(model: str) -> str:
     mon = load_statuses().get("monitor") or {}
-    live_dot = '<span class="dot-live"></span>' if mon.get("state") == "live" else ""
+    live_dot = '<span class="dot-live"></span>' if mon.get("is_live") else ""
     return (
         '<div class="topbar"><div class="brand"><span class="brand-mark"></span><div>'
         '<div class="brand-name">KPL 数据中心</div>'

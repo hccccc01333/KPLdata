@@ -118,3 +118,13 @@ data/meta/
 
 # 导出简报（P18 运行时产物）
 data/reports/
+
+# 全历史回补数据（2019–2026，体积大，可由 scripts/backfill_league_history.py 重新生成）
+data/history/
+
+# 站点数据同步的运行时状态（scripts/watch_site_data.py 生成，不入库）
+data/realtime/site_watch_state.json
+data/realtime/site_live_history.json
+
+# AI 助手的工作记忆（本地记录，不入公开仓库）
+.workbuddy-ai/
