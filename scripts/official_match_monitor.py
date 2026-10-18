@@ -850,7 +850,12 @@ def main():
     parser.add_argument("--match-id", default=None, help="指定 match_id；为空则自动从赛程选择")
     parser.add_argument("--battle-id", default=None, help="指定 battle_id；为空则从 match_id 自动发现")
     parser.add_argument("--league-id", type=int, default=LEAGUE_ID)
-    parser.add_argument("--date", default=None, help="限定当天赛程，格式 YYYY-MM-DD")
+    parser.add_argument(
+        "--date",
+        default=None,
+        help="起始日期 YYYY-MM-DD（默认今天）。注意这是「起始偏好」不是锁定值："
+             "该日比赛全部结束后会自动滚动到下一个有比赛的日期，跨天无需重启进程。",
+    )
     parser.add_argument(
         "--interval",
         type=float,
@@ -926,6 +931,9 @@ def main():
     current_match_id = args.match_id
     current_match: ScheduleMatch | None = None
     last_schedule_refresh = 0.0
+    # args.date 只是「起始偏好」，不是锁定值：当日比赛全结束后会自动滚到下一个有比赛的日期。
+    # 2026-10-18 事故就是因为 date 被钉死在启动日，进程不重启就永远找不到新比赛。
+    current_date = args.date
 
     try:
         n = refresh_schedule_archive(args.league_id)
@@ -940,18 +948,22 @@ def main():
                 if current_match_id:
                     current_match = schedule.get_match_by_id(current_match_id)
                     if not current_match:
-                        current_match = schedule.resolve_monitor_match(None, date=args.date)
+                        current_match, picked = schedule.resolve_monitor_match_rolling(current_date)
+                        if picked:
+                            current_date = picked
                         if current_match:
                             current_match_id = current_match.match_id
                 else:
-                    current_match = schedule.resolve_monitor_match(None, date=args.date)
+                    current_match, picked = schedule.resolve_monitor_match_rolling(current_date)
+                    if picked:
+                        current_date = picked
                     if current_match:
                         current_match_id = current_match.match_id
 
                 if not current_match:
                     write_status({"state": "waiting_schedule", "message": "暂无可监控比赛"}, ctx)
                     print("[WAIT] 暂无可监控比赛")
-                    maybe_train_after_batch(ctx, schedule, args.date, reason="waiting_schedule")
+                    maybe_train_after_batch(ctx, schedule, current_date, reason="waiting_schedule")
                     if args.once:
                         break
                     time.sleep(args.prestart_poll)
@@ -965,7 +977,7 @@ def main():
                     league_id=args.league_id,
                     match_id=current_match_id,
                     battle_id=None,
-                    date=args.date,
+                    date=current_date,
                     probes=args.probes,
                     probe_gap=args.probe_gap,
                     sequential_probes=args.sequential_probes,
@@ -979,7 +991,7 @@ def main():
                 history_by_battle = ctx.collect_history
 
                 if outcome == "match_finished":
-                    maybe_train_after_batch(ctx, schedule, args.date, reason="match_finished")
+                    maybe_train_after_batch(ctx, schedule, current_date, reason="match_finished")
                     if time.monotonic() - last_schedule_refresh > 1800:
                         try:
                             refresh_schedule_archive(args.league_id)
@@ -992,7 +1004,7 @@ def main():
 
                 if outcome == "match_finished" and auto_next:
                     next_match_id, next_match = advance_to_next_match(
-                        schedule, current_match_id, args.date, args.prestart_poll, ctx
+                        schedule, current_match_id, current_date, args.prestart_poll, ctx
                     )
                     if next_match_id:
                         current_match_id = next_match_id
