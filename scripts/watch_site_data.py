@@ -100,14 +100,21 @@ def git_push_site(msg: str) -> bool:
     tail = ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
     for line in tail[-3:]:
         print("  wrangler:", line[:110])
+    # push 成功 ≠ 部署成功：wrangler 退出码非 0 时线上仍是旧版本，必须如实返回失败
+    if r.returncode != 0:
+        print(f"  !! wrangler deploy 失败（退出码 {r.returncode}）：线上可能仍是旧版本")
+        return False
     return True
 
 
-def run_builds(scripts: list[str]) -> None:
+def run_builds(scripts: list[str]) -> bool:
+    """顺序执行构建脚本；返回是否全部成功。任一脚本非零退出即视为失败。"""
+    ok = True
     for name in scripts:
         script = SITE / name
         if not script.exists():
             print(f"  !! 缺失 {script}")
+            ok = False
             continue
         t0 = time.time()
         print(f"  -> {name} ...", flush=True)
@@ -118,7 +125,23 @@ def run_builds(scripts: list[str]) -> None:
             print(f"     {line}")
         if r.returncode != 0:
             print(f"     !! 退出码 {r.returncode}: {(r.stderr or '')[-200:]}")
+            ok = False
         print(f"     ({time.time()-t0:.0f}s)", flush=True)
+    return ok
+
+
+def run_readme_sync() -> None:
+    """把 README 的覆盖统计与刚生成的 assets 索引对齐（数字不手工维护）。"""
+    script = SITE / "sync_readme_stats.py"
+    if not script.exists():
+        return
+    r = subprocess.run([sys.executable, str(script)], cwd=str(SITE),
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    tail = (r.stdout or "").strip().splitlines()[-1:]
+    for line in tail:
+        print("  readme:", line[:120])
+    if r.returncode != 0:
+        print(f"  !! readme 同步失败：{(r.stderr or '')[-200:]}")
 
 
 RECENT_LEAGUES = ["20260004", "20260003", "20260002"]
@@ -152,17 +175,23 @@ def check_once(quick: bool) -> bool:
     for c in changed:
         print("  ·", Path(c).name)
     if quick:
-        run_builds(BUILD_QUICK)
+        build_ok = run_builds(BUILD_QUICK)
     else:
         # 变化时：先快速链路，再补低频全量链路
-        run_builds(BUILD_QUICK)
-        run_builds(BUILD_DAILY)
+        build_ok = run_builds(BUILD_QUICK)
+        daily_ok = run_builds(BUILD_DAILY)
+        build_ok = daily_ok and build_ok
     save_state(cur)
+    if not build_ok:
+        print("!! 构建存在失败项，跳过 README 同步与发布（避免上线半成品）")
+        return False
+    run_readme_sync()
     print("重建完成。")
     if PUSH_ENABLED:
         import datetime as _dt
         print("推送到发布仓库...")
-        git_push_site("data update " + _dt.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        if not git_push_site("data update " + _dt.datetime.now().strftime("%Y-%m-%d %H:%M")):
+            print("!! 发布未完成（git push 或 wrangler deploy 失败）：线上可能仍是旧版本")
     return True
 
 
