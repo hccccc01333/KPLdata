@@ -65,23 +65,34 @@ def save_state(state: dict) -> None:
 SITE_DIR = SITE
 
 
-def git_push_site(msg: str) -> None:
-    """把网站目录的改动提交并推送（供托管平台自动部署）。"""
+def git_push_site(msg: str) -> bool:
+    """把网站目录的改动提交并推送；返回是否推送成功（失败则不要继续部署）。
+
+    注意：这里**不能**用 `git add -A`。2026-10-18 就是它把浏览器临时 profile
+    （.edge-tmp3，291 个文件）提交进了公开仓库。只暂存已跟踪文件的改动 + 生成目录 assets/。
+    """
     if not (SITE_DIR / ".git").exists():
         print("  （网站目录未初始化 git 仓库，跳过推送）")
-        return
-    cmds = [
-        ["git", "add", "-A"],
-        ["git", "-c", "user.name=hccccc01333", "-c", "user.email=hccccc01333@users.noreply.github.com",
-         "commit", "-m", msg],
-        ["git", "push"],
-    ]
-    for c in cmds:
+        return False
+
+    def run(c: list[str]) -> tuple[int, str]:
         r = subprocess.run(c, cwd=str(SITE_DIR), capture_output=True, text=True,
                            encoding="utf-8", errors="replace")
         out = ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
         if out:
             print("  git:", out[-1][:110])
+        return r.returncode, (out[-1] if out else "")
+
+    run(["git", "add", "-u"])
+    if (SITE_DIR / "assets").exists():
+        run(["git", "add", "assets"])
+    run(["git", "-c", "user.name=hccccc01333",
+         "-c", "user.email=hccccc01333@users.noreply.github.com", "commit", "-m", msg])
+    code, _ = run(["git", "push"])
+    if code != 0:
+        print("  !! git push 失败，跳过 Cloudflare 部署（避免线上与仓库版本不一致）")
+        return False
+
     # 直接部署到 Cloudflare（不依赖 Git 集成，比赛日数据即时上线）
     r = subprocess.run(["npx", "--yes", "wrangler@latest", "deploy"],
                        cwd=str(SITE_DIR), shell=True, capture_output=True, text=True,
@@ -89,6 +100,7 @@ def git_push_site(msg: str) -> None:
     tail = ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
     for line in tail[-3:]:
         print("  wrangler:", line[:110])
+    return True
 
 
 def run_builds(scripts: list[str]) -> None:
