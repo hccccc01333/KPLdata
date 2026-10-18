@@ -437,8 +437,17 @@ class ScheduleCenter:
         self,
         explicit_match_id: str | None = None,
         date: str | None = None,
+        fallback: bool = True,
     ) -> ScheduleMatch | None:
-        """Pick the match that should be monitored right now."""
+        """Pick the match that should be monitored right now.
+
+        ``fallback=False`` 时严格只看 ``date`` 当天：当天没有就返回 None，
+        不去 ``active_or_next_match()`` 跨日期兜底。
+
+        为什么需要这个开关：``active_or_next_match()`` 的最后一步是 ``matches[-1]``，
+        在没有进行中/即将开始的比赛时，它会返回列表里最后一场——**哪怕那场早就打完了**。
+        跨天滚动必须严格按日期找，否则会绕开窗口限制选中过期或过远的比赛。
+        """
         if explicit_match_id:
             return self.get_match_by_id(explicit_match_id)
         today = self.today_matches() if date is None else [
@@ -446,7 +455,7 @@ class ScheduleCenter:
             if m.start_time and m.start_time.strftime("%Y-%m-%d") == date
         ]
         if not today:
-            return self.active_or_next_match()
+            return self.active_or_next_match() if fallback else None
         active = [m for m in today if m.status == 1]
         if active:
             return sorted(active, key=lambda m: m.start_time or datetime.max)[0]
@@ -459,6 +468,40 @@ class ScheduleCenter:
             return sorted(upcoming, key=lambda m: m.start_time or datetime.max)[0]
         pending = [m for m in today if m.status != 2]
         return sorted(pending, key=lambda m: m.start_time or datetime.max)[0] if pending else None
+
+    def resolve_monitor_match_rolling(
+        self,
+        preferred_date: str | None = None,
+        max_days_ahead: int = 7,
+    ) -> tuple[ScheduleMatch | None, str | None]:
+        """跨天安全的选场：preferred_date 只是「起始偏好」，不是锁定值。
+
+        2026-10-18 事故：monitor 以 ``--date 2026-10-17`` 启动后进程不重启，
+        date 就永远钉死在 10-17；那天比赛全结束后 ``resolve_monitor_match`` 恒为 None，
+        进程一直 waiting_schedule，20:00 那场整场没被采集（页面还显示「待开赛」）。
+
+        所以这里按 偏好日 → 今天 → 未来 N 天 依次试，返回第一个真有活可干的日期。
+        返回 ``(match, 实际选中的日期)``；都找不到则返回 ``(None, None)``。
+        """
+        today = datetime.now().date()
+        candidates = []
+        if preferred_date:
+            candidates.append(preferred_date)
+        candidates.append(today.strftime("%Y-%m-%d"))
+        for i in range(1, max_days_ahead + 1):
+            candidates.append((today + timedelta(days=i)).strftime("%Y-%m-%d"))
+
+        seen: set[str] = set()
+        for day in candidates:
+            if day in seen:
+                continue
+            seen.add(day)
+            # fallback=False：当天没有就说没有，交给下一个候选日期，
+            # 否则会被 active_or_next_match 的 matches[-1] 兜底选中过期比赛。
+            match = self.resolve_monitor_match(None, date=day, fallback=False)
+            if match:
+                return match, day
+        return None, None
 
     def next_match_after(self, match_id: str, date: str | None = None) -> ScheduleMatch | None:
         """Return the next scheduled match on the same day after match_id."""
