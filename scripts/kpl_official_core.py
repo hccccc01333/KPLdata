@@ -12,6 +12,7 @@ import ast
 import json
 import math
 import os
+import sys
 import time
 from collections import Counter, defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -116,6 +117,24 @@ def api_get(url: str, params: dict[str, Any] | None = None, timeout: int = 12) -
     return None
 
 
+def _register_legacy_loss_alias() -> None:
+    """让 sklearn >=1.9 也能加载由 sklearn <=1.8 保存的模型产物。
+
+    sklearn <=1.8 编译出的 Cython 损失类，其 ``__module__`` 被写成顶层名 ``_loss``，
+    pickle 因此记下 ``_loss`` 作为模块名；到 sklearn >=1.9 这个顶层名已不存在，
+    joblib.load 会抛 ``ModuleNotFoundError: No module named '_loss'``。
+    这里把扩展模块的新位置登记成旧名，历史产物（V12 等）即可继续加载。
+    只做模块别名登记，不改动任何模型参数，因此不影响已发布的评估口径。
+    """
+    if "_loss" in sys.modules:
+        return
+    try:
+        from sklearn._loss import _loss as sklearn_loss  # sklearn >=1.9 的实际位置
+    except Exception:
+        return
+    sys.modules["_loss"] = sklearn_loss
+
+
 def load_model() -> dict[str, Any] | None:
     candidates = [
         MODEL_DIR / "v9_official_platform.joblib",
@@ -125,7 +144,10 @@ def load_model() -> dict[str, Any] | None:
         MODEL_DIR / "v5_realtime_voting.joblib",
     ]
     path = next((p for p in candidates if p.exists()), None)
-    return joblib.load(path) if path else None
+    if not path:
+        return None
+    _register_legacy_loss_alias()
+    return joblib.load(path)
 
 
 def get_seconds(raw_duration: Any) -> int:

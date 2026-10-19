@@ -33,11 +33,13 @@ WATCH_PATHS = [
     PROJECT_ROOT / "data" / "realtime" / "site_live_history.json",
 ]
 
-BUILD_FULL = ["build_data.py", "build_history_data.py", "build_game_details.py", "build_player_details.py"]
+BUILD_FULL = ["build_data.py", "build_history_data.py", "build_game_details.py",
+              "build_player_details.py", "build_honors_data.py"]
 # 比赛日快速链路：局列表/对局详情/比分 ~1 分钟内更新（曲线详情等低频项走 --full）
 BUILD_QUICK = ["build_history_data.py", "build_game_details.py", "build_predict_data.py",
                "build_search_index.py", "build_replay_frames.py", "build_team_data.py"]
-BUILD_DAILY = ["build_history_dataset.py", "build_data.py", "build_player_details.py"]
+BUILD_DAILY = ["build_history_dataset.py", "build_data.py", "build_player_details.py",
+               "build_honors_data.py"]
 
 
 def snapshot() -> dict:
@@ -83,12 +85,17 @@ def git_push_site(msg: str) -> bool:
             print("  git:", out[-1][:110])
         return r.returncode, (out[-1] if out else "")
 
-    # 只暂存"生成物"：assets/ 目录 + sync_readme_stats.py 重写的 README。
-    # 不带 pathspec 的 `git add -u` 会把 build_*.py / *.html 等源码改动一起扫进
-    # data update 提交（2026-10-18 已实际发生两次），源码改动必须由人单独提交。
-    run(["git", "add", "-u", "--", "assets", "README.md"])
+    # 只暂存"生成物"：assets/ 下的数据文件 + sync_readme_stats.py 重写的 README。
+    # assets/ 里同时放着**手写源码**（公共层 common.js、样式 style.css / pages.css、
+    # 复盘工作台 replay.js、分享 share.js），它们必须由人单独提交：2026-10-17~19 的
+    # data update 提交已多次把这些源码一起扫进去（d0032a8 / b23266a / 90720a7 …）。
+    # 另：这里**不能**用 `git add -A`。2026-10-18 就是它把浏览器临时 profile
+    # （.edge-tmp3，291 个文件）提交进了公开仓库。
+    KEEP_SRC = [":!assets/common.js", ":!assets/pages.css", ":!assets/style.css",
+                ":!assets/replay.js", ":!assets/share.js"]
+    run(["git", "add", "-u", "--", "assets", "README.md", *KEEP_SRC])
     if (SITE_DIR / "assets").exists():
-        run(["git", "add", "assets"])
+        run(["git", "add", "assets", *KEEP_SRC])
     run(["git", "-c", "user.name=hccccc01333",
          "-c", "user.email=hccccc01333@users.noreply.github.com", "commit", "-m", msg])
     code, _ = run(["git", "push"])
