@@ -11,7 +11,25 @@ python -m pip install -r requirements.txt
 python -m compileall -q scripts
 ```
 
-第二条仅检查源文件语法，不代表训练和实时接口验证通过。依赖采用最低版本约束，尚未固定完整环境。
+第二条仅检查源文件语法，不代表训练和实时接口验证通过。
+
+## 环境锁定
+
+训练 / 验证环境锁定为 **Python 3.14 + 精确依赖版本**（见 `requirements.txt` / `.python-version`）：
+
+- pandas 3.0.2 · numpy 2.4.4 · requests 2.33.1
+- scikit-learn 1.8.0 · scipy 1.17.1 · joblib 1.5.3
+- plotly 6.7.0 · streamlit 1.57.0
+
+安装后运行自检：
+
+```bash
+python scripts/check_env.py
+```
+
+解释器或关键包版本不一致时返回非 0。GitHub Actions（`.github/workflows/ci.yml`）在同一套锁定环境下运行环境自检、`compileall` 与监控跨天回归（`python scripts/test_monitor_rolling.py`，不联网）。
+
+> 为什么锁 scikit-learn 1.8.0：历史 `.joblib` 产物由 1.8 编译；在 1.9 下 `_loss` 模块名漂移会导致加载失败。`load_model()` 的模块别名只是兜底，不应替代版本一致。
 
 ## 需要数据之后才能运行的流程
 
@@ -24,6 +42,7 @@ python scripts/train_realtime_model_v9.py          # 三段隔离训练，写 ou
 python scripts/backtest_realtime_v9.py --gates     # 只评 artifact 里记录的 test 段
 python scripts/regression_replay_vs_live.py --baseline   # 首次：冻结「重放 vs 直播」偏差分布
 python scripts/regression_replay_vs_live.py              # 之后：只比漂移，超容忍度 exit 1
+python scripts/train_prematch_model.py --rebuild         # 赛前大场：解析 history 并训练/评估
 streamlit run scripts/dashboard.py
 ```
 
@@ -34,6 +53,9 @@ streamlit run scripts/dashboard.py
 - **回测口径**：`backtest_realtime_v9.py` 优先读 artifact 的 `holdout_battles`，保证与训练报的是同一批局。
 - **重放回归**：`regression_replay_vs_live.py` 有缓存（`data/realtime/replay_cache/`，按模型指纹失效）。
   首次全量约 10 分钟（6 进程），之后读缓存秒出。baseline 少于 20 局不写，避免空样本变成假门禁。
+- **赛前模型**：Elo 超参只在训练段 2024 选择；LR/GBDT 超参用训练段内 TimeSeriesSplit；Platt 校准器只在
+  2025 calib 拟合；2026 test 只报指标。大场原始表缓存为 `data/processed/prematch_series_raw.csv`，
+  数据更新后加 `--rebuild` 重新解析。
 - **数据字段**：`data/processed/players.csv` 需要数字 `position` 与 `hurt_to_hero_total`；
   若由旧版导出缺少，跑 `python scripts/_patch_players_position.py` 回 raw 补齐。
 
