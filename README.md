@@ -1,12 +1,12 @@
-# KPL 赛事数据与复盘工具
+# 峡谷有数 · KPL Insight
 
 **把“这局为什么会这样”，变成可以自己查、自己对比、自己复盘的问题。**
 
-这是一个个人开发、持续迭代的开源项目。面向喜欢 KPL 的观众，也面向想研究赛事数据、改进模型和工具的开发者。
+峡谷有数是一个个人开发、持续迭代的 KPL 赛事数据与复盘开源项目。面向喜欢 KPL 的观众，也面向想研究赛事数据、改进模型和工具的开发者。
 
 你可以按时间回看一局比赛，把胜率变化与经济、资源、选手表现放在一起；也可以研究 BP、对比选手，或在沙盘里改变局面，观察模型的反应。
 
-[在线演示](https://kpldata-site.hccccc01333.workers.dev) · [备用演示地址](https://hccccc01333.github.io/KPLdata-site/) · [反馈与交流](https://github.com/hccccc01333/KPLdata/issues) · [参与贡献](CONTRIBUTING.md)
+[在线演示](https://kpldata-site.hccccc01333.workers.dev) · [备用演示地址](https://hccccc01333.github.io/KPLdata-site/) · [反馈与交流](https://github.com/hccccc01333/kpl-insight/issues) · [参与贡献](CONTRIBUTING.md)
 
 > **访问说明**：演示主站使用 Cloudflare Workers，部分网络下需要代理或其他可用网络环境。GitHub Pages 是备用地址，同样不保证国内直连；项目目前没有经验证的国内稳定访问入口。访问不通时，可按下文在本地预览静态站。**克隆数据仓库不等于下载了完整数据和预训练模型。**
 
